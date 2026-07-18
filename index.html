@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  />
+  <title>تأیید کد یکبار مصرف</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --header-height: 56px;
+      --footer-height: 48px;
+      --primary: #1565c0;
+      --primary-dark: #0d47a1;
+      --border: #e0e0e0;
+      --text: #212121;
+      --text-muted: #757575;
+      --surface: #ffffff;
+      --success: #2e7d32;
+      --error: #c62828;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 100%;
+      background: var(--surface);
+    }
+
+    .app-header {
+      flex: 0 0 calc(var(--header-height) + var(--safe-top));
+      min-height: calc(var(--header-height) + var(--safe-top));
+      padding-top: var(--safe-top);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+      z-index: 10;
+    }
+
+    .app-main {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+    }
+
+    .app-footer {
+      flex: 0 0 calc(var(--footer-height) + var(--safe-bottom));
+      min-height: calc(var(--footer-height) + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    .otp-card {
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    .otp-card__title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .otp-card__subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .otp-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      direction: ltr;
+      margin-bottom: 16px;
+    }
+
+    .otp-input {
+      width: 44px;
+      height: 52px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      caret-color: var(--primary);
+    }
+
+    .otp-input:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
+    }
+
+    .otp-input.filled {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .otp-input.error {
+      border-color: var(--error);
+      animation: shake 0.35s ease;
+    }
+
+    .otp-input.auto-filled {
+      border-color: var(--success);
+      background: #f1f8e9;
+    }
+
+    @keyframes shake {
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+      25% {
+        transform: translateX(-4px);
+      }
+      75% {
+        transform: translateX(4px);
+      }
+    }
+
+    .otp-status {
+      min-height: 22px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .otp-status--success {
+      color: var(--success);
+    }
+
+    .otp-status--error {
+      color: var(--error);
+    }
+
+    .otp-status--waiting {
+      color: var(--primary);
+    }
+
+    .otp-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn {
+      height: 46px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:not(:disabled):active {
+      background: var(--primary-dark);
+    }
+
+    .btn-link {
+      background: transparent;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .hidden-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">تأیید هویت</header>
+
+    <main class="app-main">
+      <section class="otp-card" aria-label="ورود کد یکبار مصرف">
+        <h1 class="otp-card__title">کد تأیید را وارد کنید</h1>
+        <p class="otp-card__subtitle">
+          کد ۶ رقمی ارسال‌شده به تلفن همراه شما را وارد کنید.
+          <br />
+          در صورت نصب اپ، کد به‌صورت خودکار خوانده می‌شود.
+        </p>
+
+        <div class="otp-inputs" id="otpInputs" role="group" aria-label="کد ۶ رقمی">
+          <input class="otp-input" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" data-index="0" aria-label="رقم ۱" />
+          <input class="otp-input" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" data-index="1" aria-label="رقم ۲" />
+          <input class="otp-input" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" data-index="2" aria-label="رقم ۳" />
+          <input class="otp-input" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" data-index="3" aria-label="رقم ۴" />
+          <input class="otp-input" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" data-index="4" aria-label="رقم ۵" />
+          <input class="otp-input" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" data-index="5" aria-label="رقم ۶" />
+        </div>
+
+        <input
+          id="otpAutofillCapture"
+          class="hidden-input"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          tabindex="-1"
+          aria-hidden="true"
+        />
+
+        <p class="otp-status otp-status--waiting" id="otpStatus" role="status">
+          در انتظار دریافت پیامک...
+        </p>
+
+        <div class="otp-actions">
+          <button type="button" class="btn btn-primary" id="btnVerify" disabled>
+            تأیید
+          </button>
+          <button type="button" class="btn btn-link" id="btnResend">
+            ارسال مجدد کد
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">© سیستم حسابداری</footer>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var OTP_LENGTH = 6;
+      var inputs = Array.prototype.slice.call(
+        document.querySelectorAll(".otp-input")
+      );
+      var statusEl = document.getElementById("otpStatus");
+      var btnVerify = document.getElementById("btnVerify");
+      var btnResend = document.getElementById("btnResend");
+      var autofillCapture = document.getElementById("otpAutofillCapture");
+      var readyCallbacks = [];
+      var isReady = false;
+
+      function setStatus(message, type) {
+        statusEl.textContent = message;
+        statusEl.className = "otp-status";
+
+        if (type) {
+          statusEl.classList.add("otp-status--" + type);
+        }
+      }
+
+      function getOtpValue() {
+        return inputs
+          .map(function (input) {
+            return input.value;
+          })
+          .join("");
+      }
+
+      function updateVerifyButton() {
+        btnVerify.disabled = getOtpValue().length !== OTP_LENGTH;
+      }
+
+      function markInputState(input, state) {
+        input.classList.remove("filled", "error", "auto-filled");
+
+        if (state) {
+          input.classList.add(state);
+        }
+      }
+
+      function clearOtp() {
+        inputs.forEach(function (input) {
+          input.value = "";
+          markInputState(input, null);
+        });
+        updateVerifyButton();
+      }
+
+      function focusInput(index) {
+        if (index >= 0 && index < inputs.length) {
+          inputs[index].focus();
+        }
+      }
+
+      function fillOtp(code, options) {
+        options = options || {};
+        var digits = String(code || "").replace(/\D/g, "").slice(0, OTP_LENGTH);
+
+        if (digits.length !== OTP_LENGTH) {
+          setStatus("کد دریافتی نامعتبر است.", "error");
+          inputs.forEach(function (input) {
+            markInputState(input, "error");
+          });
+          notifyOtpError("invalid_code", digits);
+          return false;
+        }
+
+        inputs.forEach(function (input, index) {
+          input.value = digits.charAt(index);
+          markInputState(input, options.auto ? "auto-filled" : "filled");
+        });
+
+        updateVerifyButton();
+        focusInput(OTP_LENGTH - 1);
+
+        if (options.auto) {
+          setStatus("کد از پیامک خوانده شد.", "success");
+        } else {
+          setStatus("کد وارد شد.", "success");
+        }
+
+        notifyOtpFilled(digits, !!options.auto);
+        return true;
+      }
+
+      function notifyOtpFilled(code, fromSms) {
+        var detail = { code: code, fromSms: fromSms, timestamp: Date.now() };
+
+        window.dispatchEvent(
+          new CustomEvent("viewapp:otp-filled", { detail: detail })
+        );
+
+        if (typeof window.onOtpFilled === "function") {
+          window.onOtpFilled(detail);
+        }
+      }
+
+      function notifyOtpError(reason, partialCode) {
+        var detail = {
+          reason: reason,
+          partialCode: partialCode || "",
+          timestamp: Date.now()
+        };
+
+        window.dispatchEvent(
+          new CustomEvent("viewapp:otp-error", { detail: detail })
+        );
+
+        if (typeof window.onOtpError === "function") {
+          window.onOtpError(detail);
+        }
+      }
+
+      function notifyReady() {
+        if (isReady) {
+          return;
+        }
+
+        isReady = true;
+        var detail = { timestamp: Date.now() };
+
+        readyCallbacks.forEach(function (callback) {
+          callback(detail);
+        });
+        readyCallbacks = [];
+
+        window.dispatchEvent(
+          new CustomEvent("viewapp:otp-ready", { detail: detail })
+        );
+
+        if (typeof window.onOtpReady === "function") {
+          window.onOtpReady(detail);
+        }
+      }
+
+      function handleManualInput(event) {
+        var input = event.target;
+        var index = Number(input.dataset.index);
+        var value = input.value.replace(/\D/g, "");
+
+        input.value = value.slice(-1);
+        markInputState(input, input.value ? "filled" : null);
+
+        if (value && index < OTP_LENGTH - 1) {
+          focusInput(index + 1);
+        }
+
+        updateVerifyButton();
+
+        if (getOtpValue().length === OTP_LENGTH) {
+          setStatus("کد کامل شد.", "success");
+          notifyOtpFilled(getOtpValue(), false);
+        } else {
+          setStatus("در انتظار تکمیل کد...", "waiting");
+        }
+      }
+
+      function handleKeyDown(event) {
+        var input = event.target;
+        var index = Number(input.dataset.index);
+
+        if (event.key === "Backspace" && !input.value && index > 0) {
+          focusInput(index - 1);
+        }
+
+        if (event.key === "ArrowLeft" && index > 0) {
+          event.preventDefault();
+          focusInput(index - 1);
+        }
+
+        if (event.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+          event.preventDefault();
+          focusInput(index + 1);
+        }
+      }
+
+      function handlePaste(event) {
+        event.preventDefault();
+        var pasted = (event.clipboardData || window.clipboardData).getData("text");
+        fillOtp(pasted, { auto: false });
+      }
+
+      function handleAutofillCapture(event) {
+        var value = event.target.value;
+
+        if (value) {
+          fillOtp(value, { auto: true });
+          event.target.value = "";
+        }
+      }
+
+      function handleVerify() {
+        var code = getOtpValue();
+
+        if (code.length !== OTP_LENGTH) {
+          setStatus("لطفاً کد ۶ رقمی را کامل وارد کنید.", "error");
+          return;
+        }
+
+        setStatus("در حال تأیید...", "waiting");
+
+        window.dispatchEvent(
+          new CustomEvent("viewapp:otp-submit", {
+            detail: { code: code, timestamp: Date.now() }
+          })
+        );
+
+        if (typeof window.onOtpSubmit === "function") {
+          window.onOtpSubmit({ code: code, timestamp: Date.now() });
+        }
+      }
+
+      function handleResend() {
+        clearOtp();
+        setStatus("در انتظار دریافت پیامک...", "waiting");
+        focusInput(0);
+
+        window.dispatchEvent(
+          new CustomEvent("viewapp:otp-resend", {
+            detail: { timestamp: Date.now() }
+          })
+        );
+
+        if (typeof window.onOtpResend === "function") {
+          window.onOtpResend({ timestamp: Date.now() });
+        }
+      }
+
+      inputs.forEach(function (input) {
+        input.addEventListener("input", handleManualInput);
+        input.addEventListener("keydown", handleKeyDown);
+        input.addEventListener("paste", handlePaste);
+        input.addEventListener("focus", function () {
+          input.select();
+        });
+      });
+
+      autofillCapture.addEventListener("input", handleAutofillCapture);
+      btnVerify.addEventListener("click", handleVerify);
+      btnResend.addEventListener("click", handleResend);
+
+      /**
+       * قرارداد ارتباط با ViewApp (Capacitor)
+       * ------------------------------------
+       * این فایل استاتیک است و مستقیماً به پلاگین‌های native دسترسی ندارد.
+       * پروژه Capacitor باید پس از خواندن SMS، یکی از روش‌های زیر را فراخوانی کند:
+       *
+       * 1) API عمومی (پیشنهادی):
+       *    window.ViewAppOtp.receive("123456");
+       *
+       * 2) رویداد سفارشی:
+       *    window.dispatchEvent(new CustomEvent("viewapp:otp-received", {
+       *      detail: { code: "123456" }
+       *    }));
+       *
+       * 3) evaluateJavascript در WebView:
+       *    webView.evaluateJavascript("window.ViewAppOtp.receive('123456')");
+       */
+      window.ViewAppOtp = {
+        receive: function (code) {
+          return fillOtp(code, { auto: true });
+        },
+        clear: clearOtp,
+        getValue: getOtpValue,
+        setStatus: setStatus,
+        focus: function () {
+          focusInput(0);
+        },
+        onReady: function (callback) {
+          if (typeof callback !== "function") {
+            return;
+          }
+
+          if (isReady) {
+            callback({ timestamp: Date.now() });
+            return;
+          }
+
+          readyCallbacks.push(callback);
+        }
+      };
+
+      window.addEventListener("viewapp:otp-received", function (event) {
+        var code = event.detail && event.detail.code;
+
+        if (code) {
+          window.ViewAppOtp.receive(code);
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        notifyReady();
+        focusInput(0);
+      });
+
+      if (document.readyState !== "loading") {
+        notifyReady();
+      }
+    })();
+  </script>
+</body>
+</html>
