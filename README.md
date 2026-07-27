@@ -39,11 +39,11 @@ npm install --registry=https://package-mirror.liara.ir/repository/npm/
    **Settings → Pages → Build and deployment → Source: GitHub Actions**
 3. بعد از سبز شدن workflow:
 
-`https://USERNAME.github.io/app-capacitor/login`
+`https://USERNAME.github.io/vite-vue-pwa-capacitor/login`
 
 ### بیلد دستی برای Pages
 
 ```bash
 # Windows PowerShell
-$env:VITE_BASE_PATH="/app-capacitor/"; npm run build:gh
+$env:VITE_BASE_PATH="/vite-vue-pwa-capacitor/"; npm run build:gh
 ```

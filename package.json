@@ -1,12 +1,12 @@
 {
-  "name": "app-capacitor",
+  "name": "vite-vue-pwa-capacitor",
   "private": true,
   "version": "0.0.4",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "build:gh": "vite build --base=/app-capacitor/ && node scripts/spa-github-pages.js",
+    "build:gh": "vite build --base=/vite-vue-pwa-capacitor/ && node scripts/spa-github-pages.js",
     "preview": "vite preview --host",
     "mobile": "vite build && vite preview --host"
   },

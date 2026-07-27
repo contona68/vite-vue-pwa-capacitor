@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 
-// برای GitHub Pages: npm run build:gh  (base=/app-capacitor/)
+// برای GitHub Pages: npm run build:gh  (base=/vite-vue-pwa-capacitor/)
 // اگر اسم ریپو فرق دارد، در package.json همان را عوض کن
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/',
