@@ -1,5 +1,6 @@
-/** وضعیت شبکه مرورگر */
+import { getConnectivityOnline } from '@/adapters/connectivity'
+
+/** وضعیت شبکه اپ (وب: navigator — native: ViewApp) */
 export function isBrowserOnline() {
-  if (typeof navigator === 'undefined') return true
-  return navigator.onLine
+  return getConnectivityOnline()
 }

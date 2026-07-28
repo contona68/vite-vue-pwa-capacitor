@@ -17,6 +17,8 @@ export function createDefaultAppConfig() {
       runtime: 'web',
       smsProvider: webPlatformPolicy.sms.provider,
       biometricProvider: webPlatformPolicy.biometric.provider,
+      connectivityProvider: webPlatformPolicy.connectivity.provider,
+      navigationProvider: webPlatformPolicy.navigation.provider,
       pwa: { ...webPlatformPolicy.pwa },
     },
   }

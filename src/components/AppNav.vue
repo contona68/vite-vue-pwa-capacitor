@@ -1,6 +1,18 @@
 <template>
   <nav class="nav" aria-label="منوی اصلی">
-    <RouterLink class="brand" :to="{ name: 'home' }">{{ brandName }}</RouterLink>
+    <div class="nav-start">
+      <button
+        v-if="showBack"
+        type="button"
+        class="back-btn"
+        aria-label="بازگشت"
+        @click="onBack"
+      >
+        <span aria-hidden="true">→</span>
+        بازگشت
+      </button>
+      <RouterLink class="brand" :to="{ name: 'home' }">{{ brandName }}</RouterLink>
+    </div>
     <div class="links">
       <RouterLink :to="{ name: 'home' }">خانه</RouterLink>
       <RouterLink :to="{ name: 'about' }">درباره</RouterLink>
@@ -29,6 +41,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { isLoggedIn } from '@/utils/auth'
 import { appConfig } from '@/services/appConfig.service'
 import { performLogout } from '@/services/session.service'
+import { goBack, shouldShowWebBackButton } from '@/services/navigation.service'
+import { isBackableRoute } from '@/adapters/navigation'
 
 const router = useRouter()
 const route = useRoute()
@@ -37,6 +51,13 @@ const loggedIn = computed(() => {
   return isLoggedIn()
 })
 const brandName = computed(() => appConfig.value.branding.appName)
+const showBack = computed(
+  () => shouldShowWebBackButton() && isBackableRoute(route.name),
+)
+
+async function onBack() {
+  await goBack()
+}
 
 async function onLogout() {
   performLogout()
@@ -76,10 +97,37 @@ async function expireTokenForTest() {
   color: #e2e8f0;
 }
 
+.nav-start {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .brand {
   font-weight: 700;
   color: #38bdf8;
   text-decoration: none;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #cbd5e1;
+  background: none;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.back-btn:hover {
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.7);
 }
 
 .links {

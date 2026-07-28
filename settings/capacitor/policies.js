@@ -21,6 +21,8 @@
  * @property {{ provider: CapabilityProvider }} sms
  * @property {{ provider: CapabilityProvider }} biometric
  * @property {{ provider: CapabilityProvider, hideHtmlSplash: boolean }} splash
+ * @property {{ provider: CapabilityProvider, showWebUi: boolean }} connectivity
+ * @property {{ provider: CapabilityProvider, showWebBackButton: boolean }} navigation
  */
 
 /** @type {PlatformPolicy} */
@@ -35,6 +37,10 @@ export const webPlatformPolicy = {
   sms: { provider: 'web' },
   biometric: { provider: 'web' },
   splash: { provider: 'web', hideHtmlSplash: false },
+  /** در وب، اندیکاتور/پیام آفلاین را خود اپ نشان می‌دهد */
+  connectivity: { provider: 'web', showWebUi: true },
+  /** دکمهٔ بک داخل UI وب */
+  navigation: { provider: 'web', showWebBackButton: true },
 }
 
 /** @type {PlatformPolicy} */
@@ -49,6 +55,10 @@ export const nativePlatformPolicy = {
   sms: { provider: 'native' },
   biometric: { provider: 'native' },
   splash: { provider: 'native', hideHtmlSplash: true },
+  /** وضعیت شبکه از ViewApp می‌آید؛ overlay آفلاین سمت shell است */
+  connectivity: { provider: 'native', showWebUi: false },
+  /** بک سخت‌افزاری/ViewApp؛ دکمهٔ داخل وب هم برای تاریخچه فعال است */
+  navigation: { provider: 'native', showWebBackButton: true },
 }
 
 /**
@@ -56,7 +66,14 @@ export const nativePlatformPolicy = {
  * @returns {PlatformPolicy}
  */
 export function resolvePlatformPolicy(isNative) {
-  return isNative
-    ? { ...nativePlatformPolicy, pwa: { ...nativePlatformPolicy.pwa } }
-    : { ...webPlatformPolicy, pwa: { ...webPlatformPolicy.pwa } }
+  const policy = isNative ? nativePlatformPolicy : webPlatformPolicy
+  return {
+    ...policy,
+    pwa: { ...policy.pwa },
+    sms: { ...policy.sms },
+    biometric: { ...policy.biometric },
+    splash: { ...policy.splash },
+    connectivity: { ...policy.connectivity },
+    navigation: { ...policy.navigation },
+  }
 }

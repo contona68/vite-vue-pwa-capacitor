@@ -14,11 +14,12 @@ import {
 } from '@/adapters/bridge'
 import { capacitorPluginNames } from '@settings/capacitor/plugins.js'
 import { smsSettings } from '@settings/sms/defaults.js'
+import { viewAppBridge } from '@settings/capacitor/bridge.js'
 
-const OTP_EVENT = smsSettings.otpBridgeEvent
+const OTP_EVENT = smsSettings.otpBridgeEvent || viewAppBridge.otpEvent
 
 function ensureReceiveBridge() {
-  exposeWindowApi('ViewAppOtp', {
+  exposeWindowApi(viewAppBridge.otpApi, {
     receive(code) {
       emitBridgeEvent(OTP_EVENT, { code: String(code ?? ''), fromSms: true })
       return true

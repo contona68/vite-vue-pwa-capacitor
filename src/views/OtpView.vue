@@ -47,9 +47,9 @@
           {{ isSubmitting ? 'در حال بررسی...' : 'تأیید کد' }}
         </button>
 
-        <button class="btn ghost" type="button" @click="goBackToLogin">
-          بازگشت به ورود
-        </button>
+          <button class="btn ghost" type="button" @click="onBack">
+            بازگشت
+          </button>
       </form>
     </section>
   </main>
@@ -71,6 +71,7 @@ import { completeTokenLogin } from '@/services/login.service'
 import { APP_ICON_192 } from '@/utils/publicUrl'
 import { isSmsAutoFillAvailable, listenForSmsOtp, normalizeOtpCode } from '@/adapters/sms'
 import { smsSettings } from '@settings/sms/defaults.js'
+import { goBack } from '@/services/navigation.service'
 
 const OTP_LENGTH = smsSettings.otpLength
 const emptyOtpDigits = () => Array.from({ length: OTP_LENGTH }, () => '')
@@ -202,6 +203,14 @@ async function onSubmit() {
     errorMessage.value = error?.message || 'صدور توکن ناموفق بود.'
   } finally {
     isSubmitting.value = false
+  }
+}
+
+async function onBack() {
+  stopSmsOtpListener()
+  const result = await goBack()
+  if (result === 'noop') {
+    await goBackToLogin()
   }
 }
 

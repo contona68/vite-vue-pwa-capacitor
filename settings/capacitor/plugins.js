@@ -4,4 +4,5 @@
 export const capacitorPluginNames = {
   splashScreen: 'SplashScreen',
   smsRetriever: ['SmsRetriever', 'SMSRetriever', 'SmsReader'],
+  app: 'App',
 }

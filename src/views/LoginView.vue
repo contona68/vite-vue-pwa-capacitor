@@ -137,7 +137,7 @@ import {
   isSessionUnlocked,
 } from '@/utils/auth'
 import { appConfig, isFeatureEnabled } from '@/services/appConfig.service'
-import { useConnectivity } from '@/services/connectivity.service'
+import { useConnectivity, shouldShowWebConnectivityUi } from '@/services/connectivity.service'
 import { completeTokenLogin } from '@/services/login.service'
 import {
   checkLoginByToken,
@@ -161,7 +161,9 @@ const showNoBiometricModal = ref(false)
 const isResolvingGate = ref(true)
 const { isOnline } = useConnectivity()
 
-const showConnectivity = computed(() => isFeatureEnabled('connectivityIndicator'))
+const showConnectivity = computed(
+  () => shouldShowWebConnectivityUi() && isFeatureEnabled('connectivityIndicator'),
+)
 const offlineMessage = computed(() => appConfig.value.connectivity.offlineMessage)
 
 watch(

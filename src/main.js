@@ -7,12 +7,16 @@ import {
   initPlatformRuntime,
   isPwaCapabilityEnabled,
 } from './services/platform.service'
+import { initConnectivityRuntime } from './services/connectivity.service'
+import { initNavigationRuntime } from './services/navigation.service'
 import { hideSplash, prepareSplash } from './adapters/splash'
 import { startEarlyBeforeInstallPromptCapture } from './utils/pwaInstall'
 import './style.css'
 
 async function bootstrap() {
   await initPlatformRuntime()
+  initConnectivityRuntime()
+  initNavigationRuntime()
   prepareSplash()
 
   // BIP فقط در وب — در native بی‌معنا و تداخل‌زا است

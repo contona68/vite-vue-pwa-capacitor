@@ -21,6 +21,8 @@ export async function initPlatformRuntime() {
     mode: activePolicy.mode,
     sms: activePolicy.sms.provider,
     biometric: activePolicy.biometric.provider,
+    connectivity: activePolicy.connectivity,
+    navigation: activePolicy.navigation,
     pwa: activePolicy.pwa,
   })
 
@@ -76,6 +78,8 @@ export function applyPlatformPolicyToConfig(config) {
       runtime: getRuntimePlatform(),
       smsProvider: policy.sms.provider,
       biometricProvider: policy.biometric.provider,
+      connectivityProvider: policy.connectivity?.provider,
+      navigationProvider: policy.navigation?.provider,
       pwa: { ...policy.pwa },
     },
   }
