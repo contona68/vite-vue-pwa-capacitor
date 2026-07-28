@@ -1,19 +1,26 @@
 <template>
-  <Transition name="banner">
-    <aside v-if="visible" class="update-banner" role="dialog" aria-labelledby="update-title">
-      <img class="app-icon" :src="appIcon" alt="" width="48" height="48" />
+  <Teleport to="body">
+    <Transition name="banner">
+      <aside
+        v-if="visible"
+        class="update-banner"
+        role="dialog"
+        aria-labelledby="update-title"
+      >
+        <img class="app-icon" :src="appIcon" alt="" width="48" height="48" />
 
-      <div class="text">
-        <strong id="update-title">{{ pwaUi.updateTitle }}</strong>
-        <p>{{ pwaUi.updateBody }}</p>
-      </div>
+        <div class="text">
+          <strong id="update-title">{{ pwaUi.updateTitle }}</strong>
+          <p>{{ pwaUi.updateBody }}</p>
+        </div>
 
-      <div class="actions">
-        <button type="button" class="btn ghost" @click="onDismiss">{{ pwaUi.updateDismiss }}</button>
-        <button type="button" class="btn primary" @click="onUpdate">{{ pwaUi.updateAccept }}</button>
-      </div>
-    </aside>
-  </Transition>
+        <div class="actions">
+          <button type="button" class="btn ghost" @click="onDismiss">{{ pwaUi.updateDismiss }}</button>
+          <button type="button" class="btn primary" @click="onUpdate">{{ pwaUi.updateAccept }}</button>
+        </div>
+      </aside>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
@@ -44,32 +51,38 @@ function onDismiss() {
 <style scoped>
 .update-banner {
   position: fixed;
-  z-index: 60;
-  inset-inline: 1rem;
-  top: max(1rem, env(safe-area-inset-top, 0px));
+  z-index: 10050;
+  inset-inline: 0.75rem;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
   bottom: auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.9rem;
+  gap: 0.75rem;
   align-items: center;
-  padding: 1rem 1.15rem;
+  padding: 0.9rem 1rem;
   border-radius: 1rem;
   background: #ffffff;
   color: #0f172a;
   border: 1px solid #fde68a;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  max-width: min(36rem, calc(100vw - 1.5rem));
+  margin-inline: auto;
+  left: 0;
+  right: 0;
+  width: calc(100% - 1.5rem);
+  pointer-events: auto;
 }
 
 .app-icon {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   background: transparent;
   object-fit: contain;
 }
 
 .text {
-  flex: 1 1 200px;
+  flex: 1 1 160px;
   min-width: 0;
 }
 
@@ -77,26 +90,28 @@ function onDismiss() {
   display: block;
   margin-bottom: 0.2rem;
   color: #0f172a;
-  font-size: 1rem;
+  font-size: 0.98rem;
 }
 
 .text p {
   margin: 0;
   color: #64748b;
-  font-size: 0.88rem;
-  line-height: 1.55;
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.45rem;
   margin-inline-start: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .btn {
   border: 0;
   border-radius: 0.7rem;
-  padding: 0.55rem 0.95rem;
+  padding: 0.55rem 0.9rem;
   font: inherit;
   font-weight: 600;
   cursor: pointer;

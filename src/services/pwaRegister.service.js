@@ -11,6 +11,11 @@ function updatesUiEnabled() {
 function announceUpdateAvailable() {
   if (!updatesUiEnabled()) return
   needRefresh.value = true
+  console.info('[PWA] Update available — banner should show')
+}
+
+function hasWaitingWorker(registration) {
+  return Boolean(registration?.waiting)
 }
 
 /**
@@ -20,9 +25,13 @@ function watchRegistrationForWaiting(registration) {
   if (!registration) return () => {}
 
   const onStateChange = (worker) => {
-    if (!worker) return
+    if (!worker) return () => {}
     const handle = () => {
+      // installed + controller = آپدیت (نه نصب اول)
       if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+        announceUpdateAvailable()
+      }
+      if (worker.state === 'installed' && registration.waiting === worker) {
         announceUpdateAvailable()
       }
     }
@@ -31,7 +40,7 @@ function watchRegistrationForWaiting(registration) {
     return () => worker.removeEventListener('statechange', handle)
   }
 
-  if (registration.waiting) {
+  if (hasWaitingWorker(registration)) {
     announceUpdateAvailable()
   }
 
@@ -54,8 +63,8 @@ function watchRegistrationForWaiting(registration) {
 
 /**
  * ثبت SW:
- * - وب: کش لاگین + بنر آپدیت
- * - Capacitor: فقط کش لاگین (بدون UI نصب/آپدیت PWA)
+ * - وب/PWA موبایل و دسکتاپ: کش لاگین + بنر آپدیت
+ * - Capacitor: فقط کش لاگین
  */
 export async function setupPwaRuntime() {
   if (!projectPwaConfig.loginOfflineCache || !isPwaCapabilityEnabled('loginOfflineCache')) {
@@ -87,7 +96,9 @@ export async function setupPwaRuntime() {
     isCheckingUpdate = true
     try {
       await registration.update()
-      if (registration.waiting) {
+      // کمی صبر: روی موبایل گاهی waiting بعد از resolve شدن update ست می‌شود
+      await new Promise((resolve) => window.setTimeout(resolve, 300))
+      if (hasWaitingWorker(registration)) {
         announceUpdateAvailable()
       }
       console.info('[PWA] Checked for service worker update')
@@ -106,6 +117,15 @@ export async function setupPwaRuntime() {
     stopWaitingWatch = watchRegistrationForWaiting(registration)
   }
 
+  function scheduleMobileFriendlyRechecks(registration) {
+    // PWA موبایل اغلب بعد از برگشت از پس‌زمینه دیر آپدیت را می‌بیند
+    ;[1000, 3000, 8000, 20000].forEach((ms) => {
+      window.setTimeout(() => {
+        checkForUpdate(registration)
+      }, ms)
+    })
+  }
+
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
@@ -116,6 +136,7 @@ export async function setupPwaRuntime() {
       bindRegistration(registration)
       if (enableUpdateUi) {
         checkForUpdate(registration)
+        scheduleMobileFriendlyRechecks(registration)
         window.setInterval(() => {
           checkForUpdate(registration)
         }, pwaInstallPolicy.updateCheckIntervalMs)
@@ -139,6 +160,16 @@ export async function setupPwaRuntime() {
       checkForUpdate()
     }
   }
+
+  // موبایل / PWA: focus به‌تنهایی کافی نیست
   document.addEventListener('visibilitychange', onVisible)
   window.addEventListener('focus', onVisible)
+  window.addEventListener('pageshow', onVisible)
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // بعد از اعمال آپدیت، پرچم را پاک کن تا بنر نماند
+      needRefresh.value = false
+    })
+  }
 }

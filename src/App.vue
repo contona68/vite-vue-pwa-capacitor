@@ -1,8 +1,7 @@
 <template>
   <div class="app-shell">
-    <!-- فقط وب: بنر آپدیت؛ در Capacitor خاموش است -->
-    <UpdatePrompt v-if="showUpdateBanner" />
-    <!-- فقط وب: بنر نصب؛ همیشه mount بماند تا BIP از دست نرود -->
+    <!-- Teleport داخل خود کامپوننت؛ خارج از #app تا overflow لاگین نبردش -->
+    <UpdatePrompt />
     <InstallPrompt v-if="showInstallBanner" />
     <RouterView />
   </div>
@@ -15,9 +14,6 @@ import UpdatePrompt from '@/components/UpdatePrompt.vue'
 import { isFeatureEnabled } from '@/services/appConfig.service'
 import { isPwaCapabilityEnabled } from '@/services/platform.service'
 
-const showUpdateBanner = computed(
-  () => isFeatureEnabled('updateBanner') && isPwaCapabilityEnabled('updateBanner'),
-)
 const showInstallBanner = computed(
   () => isFeatureEnabled('installBanner') && isPwaCapabilityEnabled('installBanner'),
 )
