@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "build:gh": "vite build --base=/vite-vue-pwa-capacitor/ && node scripts/spa-github-pages.js",
+    "build:gh": "vite build --base=/vite-vue-pwa-capacitor/ && node scripts/spa-github-pages.js && node scripts/verify-dist.mjs",
     "preview": "vite preview --host",
+    "verify:dist": "node scripts/verify-dist.mjs",
     "mobile": "vite build && vite preview --host"
   },
   "dependencies": {

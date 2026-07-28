@@ -21,6 +21,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
@@ -32,6 +35,9 @@ jobs:
 
       - name: Build for GitHub Pages
         run: npm run build:gh
+
+      - name: Verify production dist
+        run: node scripts/verify-dist.mjs
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -60,4 +66,7 @@ jobs:
             echo ""
             echo "- Site: [$SITE_URL]($SITE_URL)"
             echo "- Login: [$LOGIN_URL]($LOGIN_URL)"
+            echo ""
+            echo "If the site shows a white screen and serves \`/src/main.js\`, set"
+            echo "**Settings → Pages → Source → GitHub Actions** (not Deploy from a branch)."
           } >> "$GITHUB_STEP_SUMMARY"

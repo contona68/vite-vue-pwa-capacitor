@@ -37,6 +37,7 @@ npm install --registry=https://package-mirror.liara.ir/repository/npm/
 1. کد را push کن روی `main`
 2. در GitHub برو به:
    **Settings → Pages → Build and deployment → Source: GitHub Actions**
+   (اگر روی *Deploy from a branch* باشد، سورس خام سرو می‌شود و صفحه سفید می‌بینید)
 3. بعد از سبز شدن workflow:
 
 `https://USERNAME.github.io/vite-vue-pwa-capacitor/login`
