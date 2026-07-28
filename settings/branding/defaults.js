@@ -4,5 +4,5 @@ export const brandingDefaults = {
   splashMessage: 'هایپریک',
   bootLoadingText: 'در حال آماده‌سازی...',
   /** برچسب بیلد — برای تشخیص نسخه بعد از دپلوی */
-  buildLabel: '0.0.5',
+  buildLabel: '0.0.6',
 }
