@@ -44,9 +44,10 @@ function onDismiss() {
 <style scoped>
 .update-banner {
   position: fixed;
-  z-index: 50;
+  z-index: 60;
   inset-inline: 1rem;
-  bottom: 1rem;
+  top: max(1rem, env(safe-area-inset-top, 0px));
+  bottom: auto;
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;
@@ -120,6 +121,6 @@ function onDismiss() {
 .banner-enter-from,
 .banner-leave-to {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(-12px);
 }
 </style>

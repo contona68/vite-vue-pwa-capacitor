@@ -104,9 +104,9 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
-  clearPwaInstalledFlag,
   consumeEarlyDeferredPrompt,
   getInstallSurface,
+  hasInstalledFlag,
   incrementDismissLoadCount,
   isIosSafari,
   isPwaAlreadyInstalled,
@@ -208,8 +208,14 @@ function scheduleDesktopManualGuideFallback() {
 
 function applyDeferredPrompt(event) {
   if (!event) return false
-  clearPwaInstalledFlag()
-  alreadyInstalled = false
+  // اگر از قبل نصب است (standalone / فلگ)، BIP را نادیده بگیر
+  if (alreadyInstalled || isStandaloneMode() || hasInstalledFlag()) {
+    alreadyInstalled = true
+    markPwaInstalled()
+    deferredPrompt = null
+    hideBanner()
+    return false
+  }
   deferredPrompt = event
   nativeInstallReady = true
   clearManualGuideTimer()
@@ -303,11 +309,13 @@ watch(needRefresh, (updating) => {
 onMounted(async () => {
   bindInstallListeners()
 
+  // اگر نصب است، هیچ بنر/راهنمای نصبی نشان نده
+  if (await refreshInstalledState()) return
+
   // رویدادی که موقع awaitهای bootstrap آمده بود
   applyDeferredPrompt(consumeEarlyDeferredPrompt())
 
-  // اگر BIP داریم، مرورگر هنوز نصب را ممکن می‌داند → نصب‌شده حساب نکن
-  if (!deferredPrompt && (await refreshInstalledState())) return
+  if (await refreshInstalledState()) return
 
   incrementDismissLoadCount()
 

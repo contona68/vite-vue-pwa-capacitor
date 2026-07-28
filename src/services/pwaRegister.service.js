@@ -4,18 +4,17 @@ import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 import { isFeatureEnabled } from '@/services/appConfig.service'
 import { isPwaCapabilityEnabled } from '@/services/platform.service'
 
-function canAnnounceUpdate() {
+function updatesUiEnabled() {
   return isFeatureEnabled('updateBanner') && isPwaCapabilityEnabled('updateBanner')
 }
 
 function announceUpdateAvailable() {
-  if (!canAnnounceUpdate()) return
+  if (!updatesUiEnabled()) return
   needRefresh.value = true
 }
 
 /**
  * اگر SW در حالت waiting باشد (نسخه جدید نصب‌شده و منتظر فعال‌سازی)، بنر را نشان بده.
- * علاوه بر onNeedRefresh خود vite-plugin-pwa — بعضی مرورگرها/تایمینگ‌ها آن را از دست می‌دهند.
  */
 function watchRegistrationForWaiting(registration) {
   if (!registration) return () => {}
@@ -53,7 +52,11 @@ function watchRegistrationForWaiting(registration) {
   }
 }
 
-/** ثبت SW برای کش آفلاین لاگین + اعلام نسخه جدید در وب */
+/**
+ * ثبت SW:
+ * - وب: کش لاگین + بنر آپدیت
+ * - Capacitor: فقط کش لاگین (بدون UI نصب/آپدیت PWA)
+ */
 export async function setupPwaRuntime() {
   if (!projectPwaConfig.loginOfflineCache || !isPwaCapabilityEnabled('loginOfflineCache')) {
     console.info('[PWA] Login offline cache skipped (project or platform policy)')
@@ -73,13 +76,14 @@ export async function setupPwaRuntime() {
   }
 
   const { registerSW } = await import('virtual:pwa-register')
+  const enableUpdateUi = updatesUiEnabled()
 
   let isCheckingUpdate = false
   let activeRegistration = null
   let stopWaitingWatch = null
 
   async function checkForUpdate(registration = activeRegistration) {
-    if (!registration || isCheckingUpdate) return
+    if (!enableUpdateUi || !registration || isCheckingUpdate) return
     isCheckingUpdate = true
     try {
       await registration.update()
@@ -97,6 +101,7 @@ export async function setupPwaRuntime() {
   function bindRegistration(registration) {
     if (!registration || activeRegistration === registration) return
     activeRegistration = registration
+    if (!enableUpdateUi) return
     stopWaitingWatch?.()
     stopWaitingWatch = watchRegistrationForWaiting(registration)
   }
@@ -104,15 +109,17 @@ export async function setupPwaRuntime() {
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
-      announceUpdateAvailable()
+      if (enableUpdateUi) announceUpdateAvailable()
     },
     onRegisteredSW(swUrl, registration) {
       if (!registration) return
       bindRegistration(registration)
-      checkForUpdate(registration)
-      window.setInterval(() => {
+      if (enableUpdateUi) {
         checkForUpdate(registration)
-      }, pwaInstallPolicy.updateCheckIntervalMs)
+        window.setInterval(() => {
+          checkForUpdate(registration)
+        }, pwaInstallPolicy.updateCheckIntervalMs)
+      }
       console.info('[PWA] Service Worker registered:', swUrl)
     },
     onOfflineReady() {
@@ -120,9 +127,13 @@ export async function setupPwaRuntime() {
     },
   })
 
-  setUpdateHandler(updateSW)
+  setUpdateHandler(enableUpdateUi ? updateSW : null)
 
-  // وقتی کاربر به تب برمی‌گردد، فوراً نسخه جدید را چک کن
+  if (!enableUpdateUi) {
+    console.info('[PWA] Update banner disabled for this environment (login cache only)')
+    return
+  }
+
   const onVisible = () => {
     if (document.visibilityState === 'visible') {
       checkForUpdate()

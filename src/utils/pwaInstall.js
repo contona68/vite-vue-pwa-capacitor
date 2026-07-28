@@ -26,7 +26,10 @@ export function startEarlyBeforeInstallPromptCapture() {
 function onEarlyBeforeInstallPrompt(event) {
   event.preventDefault()
   earlyDeferredPrompt = event
-  clearPwaInstalledFlag()
+  // فقط وقتی هنوز نصب‌شده علامت نخورده — BIP یعنی مرورگر هنوز نصب را ممکن می‌داند
+  if (!hasInstalledFlag() && !isStandaloneMode()) {
+    clearPwaInstalledFlag()
+  }
 }
 
 function onEarlyAppInstalled() {
@@ -92,9 +95,8 @@ export function incrementDismissLoadCount() {
 
 /**
  * آیا PWA از قبل نصب است؟
- * - standalone / iOS Home Screen → بله
- * - اگر BIP از قبل آمده → قطعاً نصب نیست
- * - فلگ محلی فقط وقتی API related-apps نیست (fallback ضعیف)
+ * اولویت: standalone → فلگ محلی (نصب قبلی) → related-apps (تأیید مثبت)
+ * فلگ را فقط با شواهد مثبت پاک نکن (related-apps خالی ≠ نصب‌نشده).
  */
 export async function isPwaAlreadyInstalled() {
   if (isStandaloneMode()) {
@@ -102,14 +104,13 @@ export async function isPwaAlreadyInstalled() {
     return true
   }
 
-  // BIP یعنی مرورگر هنوز نصب را پیشنهاد می‌دهد
-  if (earlyDeferredPrompt) {
-    clearPwaInstalledFlag()
-    return false
+  // نصب قبلی (دسکتاپ/موبایل) — دوباره بنر نصب نشان نده
+  if (hasInstalledFlag()) {
+    return true
   }
 
-  // iOS در تب مرورگر: فقط راهنما؛ فلگ localStorage گمراه‌کننده است
-  if (isIosDevice()) {
+  // BIP ذخیره‌شده یعنی مرورگر هنوز نصب را پیشنهاد می‌دهد
+  if (earlyDeferredPrompt) {
     return false
   }
 
@@ -123,14 +124,10 @@ export async function isPwaAlreadyInstalled() {
         markPwaInstalled()
         return true
       }
-      if (hasInstalledFlag()) {
-        clearPwaInstalledFlag()
-      }
-      return false
     } catch (_) {
-      // پشتیبانی ناقص
+      // پشتیبانی ناقص — فلگ محلی را دست نزن
     }
   }
 
-  return hasInstalledFlag()
+  return false
 }
