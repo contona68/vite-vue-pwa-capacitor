@@ -4,9 +4,11 @@
  */
 
 import { getCapacitorPlugin } from '@/adapters/bridge'
+import { capacitorPluginNames } from '@settings/capacitor/plugins.js'
+import { splashSettings } from '@settings/splash/defaults.js'
 
 export function prepareSplash() {
-  const splash = document.getElementById('boot-splash')
+  const splash = document.getElementById(splashSettings.bootSplashElementId)
   if (splash) {
     splash.classList.add('hidden')
     splash.remove()
@@ -14,7 +16,7 @@ export function prepareSplash() {
 }
 
 export async function hideSplash() {
-  const plugin = getCapacitorPlugin('SplashScreen')
+  const plugin = getCapacitorPlugin(capacitorPluginNames.splashScreen)
   if (plugin && typeof plugin.hide === 'function') {
     try {
       await plugin.hide()
@@ -25,7 +27,7 @@ export async function hideSplash() {
   }
 
   // fallback
-  const splash = document.getElementById('boot-splash')
+  const splash = document.getElementById(splashSettings.bootSplashElementId)
   if (splash) {
     splash.classList.add('hidden')
     splash.remove()

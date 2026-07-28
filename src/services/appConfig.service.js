@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { apiFetchAppConfig, apiResetAppConfig, apiUpdateAppConfig } from '@/api/appConfigApi'
-import { createDefaultAppConfig } from '@/config'
+import { createDefaultAppConfig } from '@settings/app'
 import { applyPlatformPolicyToConfig } from '@/services/platform.service'
 
 const configState = ref(createDefaultAppConfig())

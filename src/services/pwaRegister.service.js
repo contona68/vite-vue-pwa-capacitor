@@ -1,5 +1,6 @@
 import { needRefresh, setUpdateHandler } from '@/pwa/updateState'
-import { projectPwaConfig } from '@/config/pwa.runtime'
+import { projectPwaConfig } from '@settings/pwa/runtime.js'
+import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 import { isFeatureEnabled } from '@/services/appConfig.service'
 import { isPwaCapabilityEnabled } from '@/services/platform.service'
 
@@ -24,7 +25,6 @@ export async function setupPwaRuntime() {
 
   const { registerSW } = await import('virtual:pwa-register')
 
-  const ONE_HOUR_MS = 60 * 60 * 1000
   let isCheckingUpdate = false
 
   async function checkForUpdate(registration) {
@@ -52,7 +52,7 @@ export async function setupPwaRuntime() {
       checkForUpdate(registration)
       window.setInterval(() => {
         checkForUpdate(registration)
-      }, ONE_HOUR_MS)
+      }, pwaInstallPolicy.updateCheckIntervalMs)
       console.info('[PWA] Service Worker registered:', swUrl)
     },
     onOfflineReady() {

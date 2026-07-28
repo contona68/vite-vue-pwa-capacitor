@@ -2,10 +2,10 @@
  * سرویس سیاست محیط — تنظیمات قابل استفاده مجدد خارج از کامپوننت
  */
 
-import { resolvePlatformPolicy } from '@/config/platform.defaults'
+import { resolvePlatformPolicy } from '@settings/capacitor/policies.js'
 import { getRuntimePlatform, initPlatformEnv, isNativePlatform } from '@/platform/env'
 
-/** @type {import('@/config/platform.defaults').PlatformPolicy | null} */
+/** @type {import('@settings/capacitor/policies.js').PlatformPolicy | null} */
 let activePolicy = null
 
 /**
@@ -31,7 +31,7 @@ export async function initPlatformRuntime() {
 }
 
 /**
- * @returns {import('@/config/platform.defaults').PlatformPolicy}
+ * @returns {import('@settings/capacitor/policies.js').PlatformPolicy}
  */
 export function getPlatformPolicy() {
   if (!activePolicy) {
@@ -55,7 +55,7 @@ export function isPwaCapabilityEnabled(key) {
 /**
  * اعمال سیاست محیط روی کانفیگ اپ (features و ...)
  * منطق بیزنس/API حفظ می‌شود؛ فقط قابلیت‌های ناسازگار با native خاموش می‌شوند.
- * @param {ReturnType<import('@/config').createDefaultAppConfig>} config
+ * @param {ReturnType<import('@settings/app').createDefaultAppConfig>} config
  */
 export function applyPlatformPolicyToConfig(config) {
   const policy = getPlatformPolicy()

@@ -6,13 +6,16 @@
  * - خروج (logout) = پاک کردن توکن + سیشن + pending
  */
 
-const TOKEN_KEY = 'auth_access_token'
-const TOKEN_META_KEY = 'auth_token_meta'
-const PENDING_USER_KEY = 'auth_pending_user'
-const SESSION_UNLOCKED_KEY = 'auth_session_unlocked'
+import { appStorageKeys } from '@settings/app/storage.js'
+import { smsSettings } from '@settings/sms/defaults.js'
+
+const TOKEN_KEY = appStorageKeys.authAccessToken
+const TOKEN_META_KEY = appStorageKeys.authTokenMeta
+const PENDING_USER_KEY = appStorageKeys.authPendingUser
+const SESSION_UNLOCKED_KEY = appStorageKeys.authSessionUnlocked
 
 /** کد دمو OTP */
-export const DEMO_OTP_CODE = '123456'
+export const DEMO_OTP_CODE = smsSettings.demoOtpCode
 
 export function getAccessToken() {
   return localStorage.getItem(TOKEN_KEY) || ''

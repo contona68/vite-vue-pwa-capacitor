@@ -3,10 +3,11 @@
  * خواندن/نوشتن فقط از localStorage (به‌جای سرور)
  */
 
-import { createDefaultAppConfig } from '@/config'
+import { createDefaultAppConfig } from '@settings/app'
+import { appStorageKeys } from '@settings/app/storage.js'
 import { delay } from '@/utils/delay'
 
-const STORAGE_KEY = 'app_runtime_config_v1'
+const STORAGE_KEY = appStorageKeys.runtimeConfig
 
 function deepMerge(base, patch) {
   if (!patch || typeof patch !== 'object') return base

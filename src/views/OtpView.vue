@@ -12,7 +12,12 @@
       </div>
 
       <form class="login-form" @submit.prevent="onSubmit">
-        <div class="otp-boxes" role="group" aria-label="کد تأیید ۶ رقمی">
+        <div
+          class="otp-boxes"
+          role="group"
+          :aria-label="`کد تأیید ${OTP_LENGTH} رقمی`"
+          :style="{ '--otp-length': OTP_LENGTH }"
+        >
           <input
             v-for="(digit, index) in otpDigits"
             :key="index"
@@ -37,7 +42,7 @@
         <button
           class="btn primary"
           type="submit"
-          :disabled="isSubmitting || !isOnline || otpCode.length < 6"
+          :disabled="isSubmitting || !isOnline || otpCode.length < OTP_LENGTH"
         >
           {{ isSubmitting ? 'در حال بررسی...' : 'تأیید کد' }}
         </button>
@@ -65,12 +70,16 @@ import { useConnectivity } from '@/services/connectivity.service'
 import { completeTokenLogin } from '@/services/login.service'
 import { APP_ICON_192 } from '@/utils/publicUrl'
 import { isSmsAutoFillAvailable, listenForSmsOtp, normalizeOtpCode } from '@/adapters/sms'
+import { smsSettings } from '@settings/sms/defaults.js'
+
+const OTP_LENGTH = smsSettings.otpLength
+const emptyOtpDigits = () => Array.from({ length: OTP_LENGTH }, () => '')
 
 const appIcon = APP_ICON_192
 const router = useRouter()
 const { isOnline } = useConnectivity()
 
-const otpDigits = ref(['', '', '', '', '', ''])
+const otpDigits = ref(emptyOtpDigits())
 const otpInputRefs = ref([])
 const errorMessage = ref('')
 const isSubmitting = ref(false)
@@ -93,9 +102,9 @@ function focusBox(index) {
 }
 
 function applyOtpToBoxes(rawCode) {
-  const digits = normalizeOtpCode(rawCode, 6).split('')
-  const next = ['', '', '', '', '', '']
-  for (let i = 0; i < 6; i += 1) next[i] = digits[i] || ''
+  const digits = normalizeOtpCode(rawCode, OTP_LENGTH).split('')
+  const next = emptyOtpDigits()
+  for (let i = 0; i < OTP_LENGTH; i += 1) next[i] = digits[i] || ''
   otpDigits.value = next
   errorMessage.value = ''
   return next.join('')
@@ -103,12 +112,12 @@ function applyOtpToBoxes(rawCode) {
 
 function onDigitInput(index, event) {
   const raw = event.target.value || ''
-  const normalized = normalizeOtpCode(raw, 6)
+  const normalized = normalizeOtpCode(raw, OTP_LENGTH)
 
   if (normalized.length > 1) {
     applyOtpToBoxes(normalized)
-    if (normalized.length >= 6) onSubmit()
-    else focusBox(Math.min(normalized.length, 5))
+    if (normalized.length >= OTP_LENGTH) onSubmit()
+    else focusBox(Math.min(normalized.length, OTP_LENGTH - 1))
     return
   }
 
@@ -120,7 +129,7 @@ function onDigitInput(index, event) {
   event.target.value = digit
 
   if (digit && index < 5) focusBox(index + 1)
-  if (next.join('').length === 6) onSubmit()
+  if (next.join('').length === OTP_LENGTH) onSubmit()
 }
 
 function onDigitKeydown(index, event) {
@@ -143,7 +152,7 @@ function onDigitKeydown(index, event) {
     event.preventDefault()
     focusBox(index - 1)
   }
-  if (event.key === 'ArrowRight' && index < 5) {
+  if (event.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
     event.preventDefault()
     focusBox(index + 1)
   }
@@ -152,17 +161,17 @@ function onDigitKeydown(index, event) {
 function onOtpPaste(event) {
   event.preventDefault()
   const code = applyOtpToBoxes(event.clipboardData?.getData('text') || '')
-  if (code.length === 6) onSubmit()
-  else if (code.length > 0) focusBox(Math.min(code.length, 5))
+  if (code.length === OTP_LENGTH) onSubmit()
+  else if (code.length > 0) focusBox(Math.min(code.length, OTP_LENGTH - 1))
 }
 
 async function onSubmit() {
   errorMessage.value = ''
-  const code = normalizeOtpCode(otpCode.value, 6)
+  const code = normalizeOtpCode(otpCode.value, OTP_LENGTH)
   applyOtpToBoxes(code)
 
-  if (code.length !== 6) {
-    errorMessage.value = 'کد باید ۶ رقم باشد.'
+  if (code.length !== OTP_LENGTH) {
+    errorMessage.value = `کد باید ${OTP_LENGTH} رقم باشد.`
     return
   }
 
@@ -219,7 +228,7 @@ async function startSmsOtpListener() {
     if (rawCode == null) return
     const digits = applyOtpToBoxes(rawCode)
     await nextTick()
-    if (digits.length === 6) await onSubmit()
+    if (digits.length === OTP_LENGTH) await onSubmit()
   } catch (error) {
     if (error?.name !== 'AbortError') console.warn('[SMS OTP] failed:', error)
   }
@@ -340,7 +349,7 @@ onUnmounted(() => {
 
 .otp-boxes {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--otp-length, 6), minmax(0, 1fr));
   gap: 0.45rem;
   direction: ltr;
 }

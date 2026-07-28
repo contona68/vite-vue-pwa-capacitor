@@ -1,8 +1,9 @@
 import { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari } from '@/utils/device'
+import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 
-const INSTALLED_KEY = 'pwa-app-installed'
-const DISMISS_LOADS_KEY = 'pwa-install-loads-since-dismiss'
-const SHOW_EVERY_N_LOADS = 5
+const INSTALLED_KEY = pwaInstallPolicy.installedStorageKey
+const DISMISS_LOADS_KEY = pwaInstallPolicy.dismissLoadsStorageKey
+const SHOW_EVERY_N_LOADS = pwaInstallPolicy.showEveryNLoads
 
 export { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari }
 

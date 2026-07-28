@@ -118,9 +118,10 @@ import {
 import { APP_ICON_192 } from '@/utils/publicUrl'
 import { appConfig } from '@/services/appConfig.service'
 import { needRefresh } from '@/pwa/updateState'
+import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 
 /** فقط دسکتاپ بدون BIP */
-const MANUAL_GUIDE_DELAY_MS = 2500
+const MANUAL_GUIDE_DELAY_MS = pwaInstallPolicy.manualGuideDelayMs
 
 const appIcon = APP_ICON_192
 const visible = ref(false)

@@ -3,6 +3,7 @@
  */
 
 import { isAndroidDevice, isIosDevice } from '@/utils/device'
+import { webAuthnSettings } from '@settings/biometric/webauthn.js'
 
 function bufferToBase64Url(buffer) {
   const bytes = new Uint8Array(buffer)
@@ -72,7 +73,7 @@ export async function isFingerprintReadyToPrompt() {
   return isPlatformBiometricAvailable()
 }
 
-export function createRandomChallenge(byteLength = 32) {
+export function createRandomChallenge(byteLength = webAuthnSettings.challengeByteLength) {
   const bytes = new Uint8Array(byteLength)
   crypto.getRandomValues(bytes)
   return bytes.buffer
@@ -88,7 +89,7 @@ export async function createPlatformCredential({
   const publicKey = {
     challenge,
     rp: {
-      name: 'هایپریک',
+      name: webAuthnSettings.rpName,
       id: getRpId(),
     },
     user: {
@@ -96,17 +97,10 @@ export async function createPlatformCredential({
       name: userName,
       displayName: userDisplayName || userName,
     },
-    pubKeyCredParams: [
-      { type: 'public-key', alg: -7 },
-      { type: 'public-key', alg: -257 },
-    ],
-    authenticatorSelection: {
-      authenticatorAttachment: 'platform',
-      userVerification: 'required',
-      residentKey: 'discouraged',
-    },
-    timeout: 120_000,
-    attestation: 'none',
+    pubKeyCredParams: webAuthnSettings.pubKeyCredParams,
+    authenticatorSelection: { ...webAuthnSettings.authenticatorSelection },
+    timeout: webAuthnSettings.timeoutMs,
+    attestation: webAuthnSettings.attestation,
   }
 
   const credential = await navigator.credentials.create({ publicKey })
@@ -124,7 +118,7 @@ export async function createPlatformCredential({
 export async function getPlatformAssertion({ challenge, allowCredentialIds = [] }) {
   const publicKey = {
     challenge,
-    timeout: 120_000,
+    timeout: webAuthnSettings.timeoutMs,
     userVerification: 'required',
     rpId: getRpId(),
   }

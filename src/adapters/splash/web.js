@@ -2,12 +2,14 @@
  * Splash — وب (اسپلش HTML داخل index.html)
  */
 
+import { splashSettings } from '@settings/splash/defaults.js'
+
 export function prepareSplash() {
   // اسپلش HTML توسط اسکریپت index.html مدیریت می‌شود
 }
 
 export async function hideSplash() {
-  const splash = document.getElementById('boot-splash')
+  const splash = document.getElementById(splashSettings.bootSplashElementId)
   if (!splash) return
   splash.classList.add('hidden')
   window.setTimeout(() => {

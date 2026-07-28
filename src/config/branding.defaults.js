@@ -1,6 +1,2 @@
-/** برندینگ و اسپلش */
-export const brandingDefaults = {
-  appName: 'هایپریک',
-  splashMessage: 'هایپریک',
-  bootLoadingText: 'در حال آماده‌سازی...',
-}
+/** @deprecated از `@settings/branding` استفاده کنید */
+export { brandingDefaults } from '../../settings/branding/defaults.js'

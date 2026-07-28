@@ -7,14 +7,14 @@
 
 import { getCapacitorPlugin } from '@/adapters/bridge'
 import { createRandomChallenge as createWebChallenge } from '@/utils/webAuthn'
+import { biometricNativeSettings } from '@settings/biometric/native.js'
 
 function resolvePlugin() {
-  return (
-    getCapacitorPlugin('NativeBiometric') ||
-    getCapacitorPlugin('BiometricAuth') ||
-    getCapacitorPlugin('FingerprintAIO') ||
-    null
-  )
+  for (const name of biometricNativeSettings.pluginNames) {
+    const plugin = getCapacitorPlugin(name)
+    if (plugin) return plugin
+  }
+  return null
 }
 
 export function createRandomChallenge(byteLength = 32) {
@@ -79,14 +79,7 @@ export async function getPlatformAssertion() {
     throw new Error('پلاگین بیومتریک Capacitor در دسترس نیست. آن را در پروژهٔ native نصب کنید.')
   }
 
-  const options = {
-    reason: 'ورود به هایپریک',
-    title: 'احراز هویت',
-    subtitle: 'اثرانگشت یا قفل دستگاه',
-    description: 'برای باز کردن برنامه تأیید کنید',
-    negativeButtonText: 'لغو',
-    maxAttempts: 5,
-  }
+  const options = { ...biometricNativeSettings.prompt }
 
   if (typeof plugin.verifyIdentity === 'function') {
     await plugin.verifyIdentity(options)

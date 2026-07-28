@@ -1,8 +1,2 @@
-/**
- * کانفیگ ثابت PWA در سطح پروژه
- * از تنظیمات کاربر / API تغییر نمی‌کند.
- */
-export const projectPwaConfig = {
-  /** ثبت Service Worker هنگام اجرای اپ */
-  runtimeRegistration: true,
-}
+/** @deprecated از `@settings/pwa` استفاده کنید */
+export { projectPwaConfig } from '../../settings/pwa/runtime.js'

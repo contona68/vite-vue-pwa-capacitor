@@ -12,8 +12,10 @@ import {
   getCapacitorPlugin,
   onBridgeEvent,
 } from '@/adapters/bridge'
+import { capacitorPluginNames } from '@settings/capacitor/plugins.js'
+import { smsSettings } from '@settings/sms/defaults.js'
 
-const OTP_EVENT = 'viewapp:otp-received'
+const OTP_EVENT = smsSettings.otpBridgeEvent
 
 function ensureReceiveBridge() {
   exposeWindowApi('ViewAppOtp', {
@@ -58,10 +60,11 @@ function listenViaBridge(signal) {
  * @returns {Promise<string|null>}
  */
 async function tryListenViaPlugin(signal) {
-  const plugin =
-    getCapacitorPlugin('SmsRetriever') ||
-    getCapacitorPlugin('SMSRetriever') ||
-    getCapacitorPlugin('SmsReader')
+  let plugin = null
+  for (const name of capacitorPluginNames.smsRetriever) {
+    plugin = getCapacitorPlugin(name)
+    if (plugin) break
+  }
 
   if (!plugin) return null
 

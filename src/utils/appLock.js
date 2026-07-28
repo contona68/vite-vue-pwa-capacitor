@@ -18,8 +18,9 @@ import {
   isFingerprintReadyToPrompt,
   isPlatformBiometricAvailable,
 } from '@/adapters/biometric'
+import { appLockSettings } from '@settings/biometric/appLock.js'
 
-const LOCK_PREF_KEY = 'app_lock_pref_v1'
+const LOCK_PREF_KEY = appLockSettings.preferenceStorageKey
 
 function readPref() {
   try {

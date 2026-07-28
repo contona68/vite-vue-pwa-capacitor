@@ -1,4 +1,2 @@
-/** متون وضعیت اتصال */
-export const connectivityDefaults = {
-  offlineMessage: 'آفلاین هستید — برای ورود به اینترنت نیاز دارید',
-}
+/** @deprecated از `@settings/connectivity` استفاده کنید */
+export { connectivityDefaults } from '../../settings/connectivity/defaults.js'
