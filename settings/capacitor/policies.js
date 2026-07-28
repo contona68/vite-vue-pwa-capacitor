@@ -58,9 +58,12 @@ export const nativePlatformPolicy = {
   sms: { provider: 'native' },
   biometric: { provider: 'native' },
   splash: { provider: 'native', hideHtmlSplash: true },
-  /** وضعیت شبکه از ViewApp می‌آید؛ overlay آفلاین سمت shell است */
-  connectivity: { provider: 'native', showWebUi: false },
-  /** بک سخت‌افزاری/ViewApp؛ دکمهٔ داخل وب هم برای تاریخچه فعال است */
+  /** وضعیت شبکه از ViewApp می‌آید؛ UI آفلاین را خود وب نشان می‌دهد */
+  connectivity: { provider: 'native', showWebUi: true },
+  /**
+   * بک داخل UI وب؛ بک سخت‌افزاری فعلاً WebView.goBack است
+   * (viewapp:back اختیاری — اگر native بعداً بفرستد گوش داده می‌شود)
+   */
   navigation: { provider: 'native', showWebBackButton: true },
 }
 

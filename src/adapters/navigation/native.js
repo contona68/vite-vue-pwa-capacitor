@@ -1,10 +1,13 @@
 /**
- * Navigation — native (ViewApp / Capacitor App)
+ * Navigation — native (ViewApp)
  *
- * منابع بک:
+ * بک سخت‌افزاری فعلی ViewApp معمولاً WebView.goBack() است و به SPA اطلاع نمی‌دهد.
+ * این ماژول برای سازگاری آینده به این‌ها گوش می‌دهد (اگر native اضافه کند):
  * ۱) CustomEvent `viewapp:back`
  * ۲) window.ViewAppNav.back()
- * ۳) Capacitor Plugins.App backButton (در صورت نصب)
+ * ۳) Capacitor Plugins.App backButton
+ *
+ * دکمهٔ بک داخل UI همیشه از Vue Router استفاده می‌کند.
  */
 
 import { exposeWindowApi, getCapacitorPlugin, onBridgeEvent } from '@/adapters/bridge'

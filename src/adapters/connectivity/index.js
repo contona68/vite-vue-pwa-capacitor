@@ -11,7 +11,7 @@ function provider() {
   return isNativePlatform() ? nativeConnectivity : webConnectivity
 }
 
-export { getConnectivityOnline, onConnectivityChange } from './state'
+export { getConnectivityOnline, getVpnActive, onConnectivityChange, onVpnChange } from './state'
 
 export function readOnline() {
   return provider().readOnline()

@@ -119,6 +119,17 @@ async function tryListenViaPlugin(signal) {
   })
 }
 
+async function startNativeSmsListen() {
+  if (typeof window === 'undefined') return
+  const api = window[viewAppBridge.nativeApi]
+  if (!api || typeof api.startSmsListen !== 'function') return
+  try {
+    await api.startSmsListen()
+  } catch (error) {
+    console.warn('[SMS:native] ViewAppNative.startSmsListen failed:', error)
+  }
+}
+
 export function isSmsAutoFillAvailable() {
   return true
 }
@@ -129,6 +140,7 @@ export function isSmsAutoFillAvailable() {
  */
 export async function listenForSmsOtp(signal) {
   ensureReceiveBridge()
+  void startNativeSmsListen()
 
   const bridgePromise = listenViaBridge(signal)
 

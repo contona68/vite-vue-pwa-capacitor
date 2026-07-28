@@ -20,7 +20,7 @@ export function isAppOnline() {
   return getConnectivityOnline()
 }
 
-/** آیا UI آفلاین وب باید نشان داده شود؟ در native معمولاً overlay سمت ViewApp است */
+/** آیا UI آفلاین وب باید نشان داده شود؟ (native فقط وضعیت را می‌فرستد؛ UI با وب است) */
 export function shouldShowWebConnectivityUi() {
   return Boolean(getPlatformPolicy().connectivity?.showWebUi)
 }

@@ -8,10 +8,18 @@ let online =
     ? navigator.onLine
     : true
 
+/** وضعیت VPN — فقط از لایهٔ native معنا دارد؛ در وب معمولاً false می‌ماند */
+let vpnActive = false
+
 const listeners = new Set()
+const vpnListeners = new Set()
 
 export function getConnectivityOnline() {
   return online
+}
+
+export function getVpnActive() {
+  return vpnActive
 }
 
 export function setConnectivityOnline(nextOnline) {
@@ -28,6 +36,20 @@ export function setConnectivityOnline(nextOnline) {
   return online
 }
 
+export function setVpnActive(nextVpnActive) {
+  const value = Boolean(nextVpnActive)
+  if (vpnActive === value) return vpnActive
+  vpnActive = value
+  vpnListeners.forEach((listener) => {
+    try {
+      listener(vpnActive)
+    } catch (error) {
+      console.warn('[Connectivity] vpn listener failed:', error)
+    }
+  })
+  return vpnActive
+}
+
 /**
  * @param {(online: boolean) => void} listener
  * @returns {() => void}
@@ -36,5 +58,16 @@ export function onConnectivityChange(listener) {
   listeners.add(listener)
   return () => {
     listeners.delete(listener)
+  }
+}
+
+/**
+ * @param {(vpnActive: boolean) => void} listener
+ * @returns {() => void}
+ */
+export function onVpnChange(listener) {
+  vpnListeners.add(listener)
+  return () => {
+    vpnListeners.delete(listener)
   }
 }

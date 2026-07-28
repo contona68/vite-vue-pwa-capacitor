@@ -1,11 +1,29 @@
 /**
- * رویدادها و API پل ViewApp ↔ وب
+ * قرارداد پل ViewApp ↔ وب
+ * هم‌راستا با app-capacitor / ViewAppScriptInjector
  */
 export const viewAppBridge = {
-  otpEvent: 'viewapp:otp-received',
-  connectivityEvent: 'viewapp:connectivity',
-  backEvent: 'viewapp:back',
-  connectivityApi: 'ViewAppConnectivity',
-  navigationApi: 'ViewAppNav',
+  /** API سطح‌بالای native */
+  nativeApi: 'ViewAppNative',
+
+  /** OTP */
   otpApi: 'ViewAppOtp',
+  otpEvent: 'viewapp:otp-received',
+
+  /** شبکه */
+  connectivityEvent: 'viewapp:connectivity',
+  vpnEvent: 'viewapp:vpn',
+
+  /**
+   * اختیاری — وب ممکن است برای تست expose کند؛
+   * native فعلی ViewAppConnectivity را نصب نمی‌کند.
+   */
+  connectivityApi: 'ViewAppConnectivity',
+
+  /**
+   * اختیاری — native فعلی viewapp:back / ViewAppNav ندارد؛
+   * بک سخت‌افزاری معمولاً با WebView.goBack() انجام می‌شود.
+   */
+  navigationApi: 'ViewAppNav',
+  backEvent: 'viewapp:back',
 }

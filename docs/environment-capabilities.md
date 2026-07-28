@@ -1,14 +1,18 @@
 # منبع امکانات بر اساس محیط لود
 
+هم‌راستا با قرارداد bridge در پروژهٔ `app-capacitor`
+(`ViewAppNative` / رویدادهای `viewapp:*`).
+
 ## قاعده
 
 | محیط لود | منبع امکانات |
 |---|---|
 | وب / مرورگر / PWA | **همه چیز از وب** (API مرورگر و خود اپ) |
-| Capacitor / ViewApp | **بخشی از لایه بالا (native/shell)** و **بخشی همچنان از وب** |
+| Capacitor / ViewApp | **وضعیت/قابلیت دستگاه از لایه بالا**؛ **UI و روتینگ از وب** |
 
 تشخیص محیط: `isNativePlatform()`  
-سیاست: `settings/capacitor/policies.js`
+سیاست: `settings/capacitor/policies.js`  
+پل: `settings/capacitor/bridge.js`
 
 ---
 
@@ -16,13 +20,14 @@
 
 | فیچر | اگر فقط در وب لود شود | اگر داخل Capacitor لود شود | در Capacitor نیاز از کجا تأمین می‌شود؟ |
 |---|---|---|---|
-| تشخیص محیط | وب | لایه بالا | Capacitor shim / `window.Capacitor` |
-| آنلاین / آفلاین | وب (`navigator.onLine`) | لایه بالا | `viewapp:connectivity` / `ViewAppConnectivity` |
-| UI آفلاین (پیام داخل صفحه) | وب | لایه بالا (UI وب خاموش) | overlay آفلاین ViewApp |
-| OTP از SMS | وب (WebOTP) | لایه بالا | `ViewAppOtp` / SMS native / `viewapp:otp-received` |
-| بیومتریک / اثرانگشت | وب (WebAuthn) | لایه بالا | پلاگین Capacitor |
-| Splash بوت | وب (HTML) | لایه بالا | `SplashScreen` + دستور hide از وب |
-| بک سخت‌افزاری / سیستم | — (وجود ندارد) | لایه بالا | `viewapp:back` / `ViewAppNav` / `App.backButton` |
+| تشخیص محیط | وب | لایه بالا | Capacitor shim / `__VIEWAPP_NATIVE__` |
+| آنلاین / آفلاین (وضعیت) | وب (`navigator.onLine`) | لایه بالا | `viewapp:connectivity` + `ViewAppNative.getConnectivity()` |
+| VPN (وضعیت) | — | لایه بالا | `vpnActive` در connectivity / `viewapp:vpn` / بنر native |
+| UI آفلاین داخل صفحه | وب | **وب** | پیام/آیکون لاگین (native فقط notify می‌کند) |
+| OTP از SMS | وب (WebOTP) | لایه بالا | `ViewAppOtp` / `viewapp:otp-received` / `ViewAppNative.startSmsListen` |
+| بیومتریک / اثرانگشت | وب (WebAuthn) | لایه بالا | پلاگین Capacitor (`NativeBiometric` و…) |
+| Splash بوت | وب (HTML) | لایه بالا | `SplashScreen.hide` / `ViewAppNative.hideSplash` |
+| بک سخت‌افزاری / سیستم | — | لایه بالا (WebView) | فعلاً `WebView.goBack()`؛ `viewapp:back` اختیاری |
 | لود URL WebView | — | لایه بالا | کانفیگ ViewApp / APK |
 | Pull-to-Refresh | — | لایه بالا | تنظیمات ViewApp |
 | whitelist / UA / cache / zoom | — | لایه بالا | تنظیمات WebView |
@@ -38,4 +43,4 @@
 ## خلاصه یک‌خطی
 
 - **لود در مرورگر:** همه نیازها از وب.
-- **لود در Capacitor:** شبکه، OTP، بیومتریک، splash، بک سیستم و تنظیمات WebView از **لایه بالا**؛ خود UI اپ، روتینگ و کش لاگین از **وب** داخل WebView.
+- **لود در Capacitor:** شبکه/OTP/بیومتریک/splash از **لایه بالا**؛ UI آفلاین، روتینگ، دکمه بک داخل اپ و کش لاگین از **وب**.
