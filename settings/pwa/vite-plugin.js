@@ -49,7 +49,8 @@ export const vitePwaOptions = {
     ],
   },
   workbox: {
-    // دارایی‌های بیلد برای نمایش پوسته ورود لازم‌اند؛ ناوبری آفلاین فقط /login
+    // پوستهٔ لاگین آفلاین: دارایی‌های بیلد + ناوبری فقط /login
+    // (در وب و Capacitor؛ بنر نصب/آپدیت از policy جداست)
     globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,xml}'],
     navigateFallback: 'index.html',
     navigateFallbackAllowlist: [/\/login\/?$/],

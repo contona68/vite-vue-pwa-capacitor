@@ -48,7 +48,7 @@ export function getPlatformMode() {
 
 /**
  * آیا یک قابلیت PWA در این محیط مجاز است؟
- * @param {'runtimeRegistration' | 'earlyInstallCapture' | 'installBanner' | 'updateBanner'} key
+ * @param {'loginOfflineCache' | 'earlyInstallCapture' | 'installBanner' | 'updateBanner'} key
  */
 export function isPwaCapabilityEnabled(key) {
   return Boolean(getPlatformPolicy().pwa?.[key])

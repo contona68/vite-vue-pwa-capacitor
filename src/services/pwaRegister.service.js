@@ -4,10 +4,10 @@ import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 import { isFeatureEnabled } from '@/services/appConfig.service'
 import { isPwaCapabilityEnabled } from '@/services/platform.service'
 
-/** ثبت PWA / SW بر اساس کانفیگ پروژه و سیاست محیط */
+/** ثبت SW برای کش آفلاین لاگین بر اساس کانفیگ پروژه و سیاست محیط */
 export async function setupPwaRuntime() {
-  if (!projectPwaConfig.runtimeRegistration || !isPwaCapabilityEnabled('runtimeRegistration')) {
-    console.info('[PWA] Runtime registration skipped (project or platform policy)')
+  if (!projectPwaConfig.loginOfflineCache || !isPwaCapabilityEnabled('loginOfflineCache')) {
+    console.info('[PWA] Login offline cache skipped (project or platform policy)')
     return
   }
 
@@ -56,7 +56,7 @@ export async function setupPwaRuntime() {
       console.info('[PWA] Service Worker registered:', swUrl)
     },
     onOfflineReady() {
-      console.info('[PWA] App ready to work offline')
+      console.info('[PWA] Login shell ready to work offline')
     },
   })
 

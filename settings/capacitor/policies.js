@@ -1,6 +1,8 @@
 /**
  * سیاست محیط اجرا — web در برابر Capacitor native
- * native: بدون SW / بنر نصب / آپدیت PWA
+ *
+ * PWA کامل (نصب/بنر آپدیت) فقط وب.
+ * کش آفلاین صفحهٔ لاگین در هر دو محیط فعال است.
  */
 
 /** @typedef {'web' | 'native'} PlatformMode */
@@ -8,7 +10,7 @@
 
 /**
  * @typedef {Object} PlatformPwaPolicy
- * @property {boolean} runtimeRegistration
+ * @property {boolean} loginOfflineCache ثبت SW فقط برای کش پوستهٔ لاگین
  * @property {boolean} earlyInstallCapture
  * @property {boolean} installBanner
  * @property {boolean} updateBanner
@@ -29,7 +31,7 @@
 export const webPlatformPolicy = {
   mode: 'web',
   pwa: {
-    runtimeRegistration: true,
+    loginOfflineCache: true,
     earlyInstallCapture: true,
     installBanner: true,
     updateBanner: true,
@@ -47,7 +49,8 @@ export const webPlatformPolicy = {
 export const nativePlatformPolicy = {
   mode: 'native',
   pwa: {
-    runtimeRegistration: false,
+    /** فقط کش لاگین — بدون نصب/بنر آپدیت PWA */
+    loginOfflineCache: true,
     earlyInstallCapture: false,
     installBanner: false,
     updateBanner: false,
