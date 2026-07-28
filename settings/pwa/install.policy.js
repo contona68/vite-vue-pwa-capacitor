@@ -8,6 +8,6 @@ export const pwaInstallPolicy = {
   showEveryNLoads: 5,
   /** تأخیر قبل از نمایش راهنمای نصب دستی (ms) */
   manualGuideDelayMs: 2500,
-  /** فاصله چک آپدیت Service Worker (ms) */
-  updateCheckIntervalMs: 60 * 60 * 1000,
+  /** فاصله چک آپدیت Service Worker (ms) — کوتاه‌تر تا بعد از دپلوی زودتر دیده شود */
+  updateCheckIntervalMs: 5 * 60 * 1000,
 }

@@ -1,6 +1,6 @@
 <template>
   <Transition name="banner">
-    <aside v-if="needRefresh" class="update-banner" role="dialog" aria-labelledby="update-title">
+    <aside v-if="visible" class="update-banner" role="dialog" aria-labelledby="update-title">
       <img class="app-icon" :src="appIcon" alt="" width="48" height="48" />
 
       <div class="text">
@@ -19,11 +19,18 @@
 <script setup>
 import { computed } from 'vue'
 import { applyPwaUpdate, dismissPwaUpdate, needRefresh } from '@/pwa/updateState'
-import { appConfig } from '@/services/appConfig.service'
+import { appConfig, isFeatureEnabled } from '@/services/appConfig.service'
+import { isPwaCapabilityEnabled } from '@/services/platform.service'
 import { APP_ICON_192 } from '@/utils/publicUrl'
 
 const appIcon = APP_ICON_192
 const pwaUi = computed(() => appConfig.value.pwaUi)
+const visible = computed(
+  () =>
+    Boolean(needRefresh.value) &&
+    isFeatureEnabled('updateBanner') &&
+    isPwaCapabilityEnabled('updateBanner'),
+)
 
 function onUpdate() {
   applyPwaUpdate()

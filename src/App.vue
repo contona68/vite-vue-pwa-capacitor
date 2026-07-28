@@ -1,6 +1,7 @@
 <template>
   <div class="app-shell">
-    <UpdatePrompt v-if="showUpdateBanner" />
+    <!-- همیشه mount؛ نمایش واقعی داخل خود کامپوننت با needRefresh است -->
+    <UpdatePrompt />
     <!-- همیشه mount بماند تا beforeinstallprompt از دست نرود (حتی وقتی بنر آپدیت باز است) -->
     <InstallPrompt v-if="showInstallBanner" />
     <RouterView />
@@ -14,9 +15,6 @@ import UpdatePrompt from '@/components/UpdatePrompt.vue'
 import { isFeatureEnabled } from '@/services/appConfig.service'
 import { isPwaCapabilityEnabled } from '@/services/platform.service'
 
-const showUpdateBanner = computed(
-  () => isFeatureEnabled('updateBanner') && isPwaCapabilityEnabled('updateBanner'),
-)
 const showInstallBanner = computed(
   () => isFeatureEnabled('installBanner') && isPwaCapabilityEnabled('installBanner'),
 )
