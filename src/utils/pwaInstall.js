@@ -38,8 +38,8 @@ export function startEarlyBeforeInstallPromptCapture() {
 function onEarlyBeforeInstallPrompt(event) {
   event.preventDefault()
   earlyDeferredPrompt = event
-  // BIP = مرورگر می‌گوید هنوز نصب نیست / قابل نصب است
-  clearPwaInstalledFlag()
+  // عمداً فلگ نصب را پاک نمی‌کنیم:
+  // روی موبایل کروم گاهی بعد از نصب هم BIP می‌آید؛ پاک کردن فلگ باعث بنر غلط می‌شود.
 }
 
 function onEarlyAppInstalled() {
@@ -58,6 +58,11 @@ export function peekEarlyDeferredPrompt() {
   return earlyDeferredPrompt
 }
 
+/** نادیده گرفتن BIP ذخیره‌شده وقتی مطمئنیم نصب است */
+export function discardEarlyDeferredPrompt() {
+  earlyDeferredPrompt = null
+}
+
 export function markPwaInstalled() {
   localStorage.setItem(INSTALLED_KEY, '1')
   localStorage.removeItem(DISMISS_LOADS_KEY)
@@ -73,7 +78,6 @@ export function hasInstalledFlag() {
 
 /**
  * آیا الان داخل پوستهٔ نصب‌شده اجرا می‌شویم؟
- * API استاندارد PWA: display-mode + navigator.standalone (iOS)
  */
 export function isStandaloneMode() {
   return (
@@ -87,8 +91,7 @@ export function isStandaloneMode() {
 }
 
 /**
- * API کروم/اج: آیا این webapp از قبل به‌عنوان PWA نصب است؟
- * @see https://web.dev/get-installed-related-apps/
+ * API کروم: آیا این webapp نصب است؟
  */
 export async function hasInstalledRelatedWebApp() {
   if (!('getInstalledRelatedApps' in navigator)) return false
@@ -98,7 +101,8 @@ export async function hasInstalledRelatedWebApp() {
     return relatedApps.some(
       (app) =>
         app?.platform === 'webapp' ||
-        (typeof app?.url === 'string' && /manifest/i.test(app.url)),
+        app?.platform === 'play' ||
+        (typeof app?.url === 'string' && app.url.length > 0),
     )
   } catch (_) {
     return false
@@ -106,29 +110,28 @@ export async function hasInstalledRelatedWebApp() {
 }
 
 /**
- * تشخیص نصب:
- * 1) standalone / home screen
- * 2) getInstalledRelatedApps (کروم)
- * 3) فلگ localStorage بعد از appinstalled / قبول نصب (همان مرورگر)
+ * تشخیص نصب — اولویت برای جلوگیری از بنر غلط روی موبایل:
+ * 1) standalone
+ * 2) getInstalledRelatedApps
+ * 3) فلگ localStorage بعد از نصب موفق (appinstalled / قبول BIP)
  *
- * نکته: وجود beforeinstallprompt یعنی نصب‌نشده — فلگ را پاک می‌کنیم.
+ * beforeinstallprompt به‌تنهایی معیار «نصب‌نشده» نیست (گاهی بعد از نصب هم می‌آید).
  */
 export async function isPwaAlreadyInstalled() {
   if (isStandaloneMode()) {
     markPwaInstalled()
+    discardEarlyDeferredPrompt()
     return true
-  }
-
-  if (earlyDeferredPrompt) {
-    return false
   }
 
   if (await hasInstalledRelatedWebApp()) {
     markPwaInstalled()
+    discardEarlyDeferredPrompt()
     return true
   }
 
   if (hasInstalledFlag()) {
+    discardEarlyDeferredPrompt()
     return true
   }
 

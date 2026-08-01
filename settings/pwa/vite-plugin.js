@@ -46,11 +46,11 @@ export const vitePwaOptions = {
     launch_handler: {
       client_mode: ['navigate-existing', 'auto'],
     },
-    // برای getInstalledRelatedApps روی کروم/اندروید/دسکتاپ
+    // برای getInstalledRelatedApps — URL باید به manifest همین اپ برسد
     related_applications: [
       {
         platform: 'webapp',
-        url: './manifest.webmanifest',
+        url: 'manifest.webmanifest',
       },
     ],
     icons: [

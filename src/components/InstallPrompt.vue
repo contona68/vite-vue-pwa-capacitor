@@ -206,11 +206,11 @@ function scheduleManualGuideIfNeeded() {
   }, SHOW_DELAY_MS)
 }
 
-function applyDeferredPrompt(event) {
+async function applyDeferredPromptAsync(event) {
   if (!event) return false
-  if (isStandaloneMode()) {
+
+  if (await isPwaAlreadyInstalled()) {
     alreadyInstalled = true
-    markPwaInstalled()
     deferredPrompt = null
     hideBanner()
     return false
@@ -219,7 +219,6 @@ function applyDeferredPrompt(event) {
   deferredPrompt = event
   clearShowTimer()
 
-  // اگر آپدیت باز است فقط BIP را نگه دار؛ بنر نصب را بعداً نشان بده
   if (!canShowBanner()) {
     hideBanner()
     return true
@@ -232,7 +231,7 @@ function applyDeferredPrompt(event) {
 
 function onBeforeInstallPrompt(event) {
   event.preventDefault()
-  applyDeferredPrompt(event)
+  applyDeferredPromptAsync(event)
 }
 
 function onAppInstalled() {
@@ -323,8 +322,8 @@ onMounted(async () => {
   // ۱) نصب از قبل؟
   if (await refreshInstalledState()) return
 
-  // ۲) BIP زودهنگام
-  applyDeferredPrompt(consumeEarlyDeferredPrompt())
+  // ۲) BIP زودهنگام — فقط اگر واقعاً نصب نیست
+  await applyDeferredPromptAsync(consumeEarlyDeferredPrompt())
   incrementDismissLoadCount()
 
   // ۳) آپدیت باز؟ نصب را نشان نده
