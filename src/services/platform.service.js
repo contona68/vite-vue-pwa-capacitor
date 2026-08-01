@@ -55,20 +55,17 @@ export function isPwaCapabilityEnabled(key) {
 }
 
 /**
- * اعمال سیاست محیط روی کانفیگ اپ (features و ...)
- * منطق بیزنس/API حفظ می‌شود؛ فقط قابلیت‌های ناسازگار با native خاموش می‌شوند.
+ * اعمال سیاست محیط روی کانفیگ اپ.
+ * بنرهای PWA دیگر در features کاربر نیستند؛ فقط از platform.pwa کنترل می‌شوند.
  * @param {ReturnType<import('@settings/app').createDefaultAppConfig>} config
  */
 export function applyPlatformPolicyToConfig(config) {
   const policy = getPlatformPolicy()
   const features = { ...(config.features || {}) }
 
-  if (!policy.pwa.installBanner) {
-    features.installBanner = false
-  }
-  if (!policy.pwa.updateBanner) {
-    features.updateBanner = false
-  }
+  // پاک‌سازی فلگ‌های قدیمی ذخیره‌شده در localStorage/API
+  delete features.installBanner
+  delete features.updateBanner
 
   return {
     ...config,

@@ -26,17 +26,15 @@
 <script setup>
 import { computed } from 'vue'
 import { applyPwaUpdate, dismissPwaUpdate, needRefresh } from '@/pwa/updateState'
-import { appConfig, isFeatureEnabled } from '@/services/appConfig.service'
+import { appConfig } from '@/services/appConfig.service'
 import { isPwaCapabilityEnabled } from '@/services/platform.service'
 import { APP_ICON_192 } from '@/utils/publicUrl'
 
 const appIcon = APP_ICON_192
 const pwaUi = computed(() => appConfig.value.pwaUi)
+/** بنر آپدیت: فقط سیاست محیط + وجود آپدیت واقعی — بدون تنظیمات کاربر */
 const visible = computed(
-  () =>
-    Boolean(needRefresh.value) &&
-    isFeatureEnabled('updateBanner') &&
-    isPwaCapabilityEnabled('updateBanner'),
+  () => Boolean(needRefresh.value) && isPwaCapabilityEnabled('updateBanner'),
 )
 
 function onUpdate() {

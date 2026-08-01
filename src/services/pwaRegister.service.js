@@ -1,11 +1,10 @@
 import { needRefresh, setUpdateHandler } from '@/pwa/updateState'
 import { projectPwaConfig } from '@settings/pwa/runtime.js'
 import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
-import { isFeatureEnabled } from '@/services/appConfig.service'
 import { isPwaCapabilityEnabled } from '@/services/platform.service'
 
 function updatesUiEnabled() {
-  return isFeatureEnabled('updateBanner') && isPwaCapabilityEnabled('updateBanner')
+  return isPwaCapabilityEnabled('updateBanner')
 }
 
 /**

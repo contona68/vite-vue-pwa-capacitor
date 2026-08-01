@@ -75,16 +75,6 @@ import { getTokenUsername } from '@/utils/auth'
 
 const featureItems = [
   {
-    key: 'installBanner',
-    title: 'پیشنهاد نصب برنامه',
-    description: 'اگر برنامه روی گوشی نصب نباشد، پیام نصب را نشان بده.',
-  },
-  {
-    key: 'updateBanner',
-    title: 'اطلاع نسخه جدید',
-    description: 'وقتی نسخه تازه‌ای آماده باشد، پیام بروزرسانی را نشان بده.',
-  },
-  {
     key: 'connectivityIndicator',
     title: 'وضعیت اینترنت',
     description: 'در صفحه ورود، آنلاین یا آفلاین بودن را نشان بده.',

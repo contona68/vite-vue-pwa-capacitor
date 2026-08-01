@@ -37,6 +37,15 @@ function writeToStorage(config) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
 }
 
+/** فلگ‌های قدیمی بنر PWA دیگر در تنظیمات کاربر نیستند */
+function stripLegacyPwaFeatureFlags(config) {
+  if (!config?.features) return config
+  const features = { ...config.features }
+  delete features.installBanner
+  delete features.updateBanner
+  return { ...config, features }
+}
+
 /** معادل GET /api/app-config — فقط از storage می‌خواند */
 export async function apiFetchAppConfig() {
   await delay(120)
@@ -45,14 +54,14 @@ export async function apiFetchAppConfig() {
   if (!stored) {
     return defaults
   }
-  return deepMerge(defaults, stored)
+  return stripLegacyPwaFeatureFlags(deepMerge(defaults, stored))
 }
 
 /** معادل PUT /api/app-config — در storage ذخیره می‌کند تا GET بعدی همان را بخواند */
 export async function apiUpdateAppConfig(partialConfig) {
   await delay(120)
   const current = await apiFetchAppConfig()
-  const next = deepMerge(current, partialConfig)
+  const next = stripLegacyPwaFeatureFlags(deepMerge(current, partialConfig))
   writeToStorage(next)
   return next
 }
