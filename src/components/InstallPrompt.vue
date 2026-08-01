@@ -160,14 +160,17 @@ async function refreshInstalledState() {
   return alreadyInstalled
 }
 
-/** همان بنر فشرده برای همه مرورگرها (عنوان + متن + نصب / الان نه) */
+/**
+ * با BIP → بنر فشرده + دکمه نصب
+ * بدون BIP (فایرفاکس/…) → مستقیم راهنمای نصب دستی (بنر فشرده بی‌فایده است)
+ */
 async function showInstallBanner() {
   if (await refreshInstalledState()) return
   if (!canShowBanner()) {
     hideBanner()
     return
   }
-  stepsVisible.value = false
+  stepsVisible.value = !deferredPrompt
   visible.value = true
 }
 
@@ -234,7 +237,7 @@ function dismiss() {
 }
 
 async function onPrimary() {
-  // BIP (کروم/اج/…) → دیالوگ نصب مرورگر
+  // BIP → دیالوگ نصب مرورگر
   if (deferredPrompt) {
     deferredPrompt.prompt()
     const choice = await deferredPrompt.userChoice
@@ -249,11 +252,7 @@ async function onPrimary() {
     return
   }
 
-  // بدون BIP (فایرفاکس/…) → همان بنر؛ فقط مراحل را زیر همان عنوان باز کن
-  if (!stepsVisible.value) {
-    stepsVisible.value = true
-    return
-  }
+  // راهنمای دستی از قبل باز است → متوجه شدم
   dismiss()
 }
 
@@ -304,7 +303,7 @@ onMounted(async () => {
 
   if (!canShowBanner()) return
 
-  // BIP زود آمده → بنر فشرده؛ وگرنه کمی صبر، بعد بنر با مراحل (فایرفاکس و …)
+  // BIP → بنر فشرده؛ بدون BIP → مستقیم راهنمای دستی
   if (deferredPrompt) {
     stepsVisible.value = false
     visible.value = true
