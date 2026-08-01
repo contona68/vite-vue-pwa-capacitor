@@ -160,13 +160,18 @@ async function refreshInstalledState() {
   return alreadyInstalled
 }
 
-/** نمایش بنر یکسان — همه مرورگرهای وب */
+/**
+ * نمایش بنر یکسان.
+ * با BIP → فشرده + دکمه نصب (دیالوگ مرورگر)
+ * بدون BIP (مثل فایرفاکس) → همان بنر با مراحل از همان ابتدا (بدون کلیک اضافه)
+ */
 async function showInstallBanner() {
   if (await refreshInstalledState()) return
   if (!canShowBanner()) {
     hideBanner()
     return
   }
+  stepsVisible.value = !deferredPrompt
   visible.value = true
 }
 
@@ -233,7 +238,7 @@ function dismiss() {
 }
 
 async function onPrimary() {
-  // ۱) کروم/اج/اندروید با BIP → دیالوگ نصب مرورگر
+  // BIP → دیالوگ نصب مرورگر
   if (deferredPrompt) {
     deferredPrompt.prompt()
     const choice = await deferredPrompt.userChoice
@@ -248,19 +253,14 @@ async function onPrimary() {
     return
   }
 
-  // ۲) بدون BIP → همان بنر، فقط مراحل را باز کن؛ بار دوم = متوجه شدم
-  if (!stepsVisible.value) {
-    stepsVisible.value = true
-    return
-  }
+  // بدون BIP: مراحل از قبل دیده می‌شود → «متوجه شدم»
   dismiss()
 }
 
 async function restoreBannerAfterUpdate() {
   if (await refreshInstalledState()) return
   if (canShowBanner()) {
-    stepsVisible.value = false
-    visible.value = true
+    await showInstallBanner()
   }
 }
 
@@ -304,8 +304,9 @@ onMounted(async () => {
 
   if (!canShowBanner()) return
 
-  // BIP زود آمده → همان لحظه؛ وگرنه کمی صبر تا BIP دیررس، بعد بنر یکسان برای همه
+  // BIP زود آمده → بنر فشرده؛ وگرنه کمی صبر، بعد بنر با مراحل (فایرفاکس و …)
   if (deferredPrompt) {
+    stepsVisible.value = false
     visible.value = true
     return
   }
