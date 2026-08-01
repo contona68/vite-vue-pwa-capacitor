@@ -8,6 +8,8 @@ import {
 import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 
 const INSTALLED_KEY = pwaInstallPolicy.installedStorageKey
+const INSTALLED_COOKIE = pwaInstallPolicy.installedCookieName
+const INSTALLED_COOKIE_MAX_AGE = pwaInstallPolicy.installedCookieMaxAgeSec
 const DISMISS_LOADS_KEY = pwaInstallPolicy.dismissLoadsStorageKey
 const SHOW_EVERY_N_LOADS = pwaInstallPolicy.showEveryNLoads
 
@@ -38,7 +40,7 @@ export function startEarlyBeforeInstallPromptCapture() {
 function onEarlyBeforeInstallPrompt(event) {
   event.preventDefault()
   earlyDeferredPrompt = event
-  // BIP یعنی مرورگر هنوز نصب را ممکن می‌داند → نصب‌شده نیست
+  // BIP = این مرورگر هنوز نصب را پیشنهاد می‌دهد (معمولاً نصب نیست / حذف شده)
   if (!isStandaloneMode()) {
     clearPwaInstalledFlag()
   }
@@ -60,17 +62,53 @@ export function peekEarlyDeferredPrompt() {
   return earlyDeferredPrompt
 }
 
+function cookiePath() {
+  const base = import.meta.env.BASE_URL || '/'
+  if (!base || base === '/') return '/'
+  return base.endsWith('/') ? base : `${base}/`
+}
+
+function setInstalledCookie() {
+  if (typeof document === 'undefined') return
+  const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${INSTALLED_COOKIE}=1; Path=${cookiePath()}; Max-Age=${INSTALLED_COOKIE_MAX_AGE}; SameSite=Lax${secure}`
+}
+
+function clearInstalledCookie() {
+  if (typeof document === 'undefined') return
+  document.cookie = `${INSTALLED_COOKIE}=; Path=${cookiePath()}; Max-Age=0; SameSite=Lax`
+}
+
+function hasInstalledCookie() {
+  if (typeof document === 'undefined') return false
+  return document.cookie.split(';').some((part) => part.trim() === `${INSTALLED_COOKIE}=1`)
+}
+
 export function markPwaInstalled() {
   localStorage.setItem(INSTALLED_KEY, '1')
   localStorage.removeItem(DISMISS_LOADS_KEY)
+  setInstalledCookie()
 }
 
 export function clearPwaInstalledFlag() {
   localStorage.removeItem(INSTALLED_KEY)
+  clearInstalledCookie()
 }
 
+/**
+ * نصب قبلی: localStorage (همان مرورگر) یا کوکی (مشترک بین مرورگرها روی همان دامنه).
+ * اگر یکی بود، دیگری را همگام کن تا کروم→فایرفاکس هم درست کار کند.
+ */
 export function hasInstalledFlag() {
-  return localStorage.getItem(INSTALLED_KEY) === '1'
+  const fromStorage = localStorage.getItem(INSTALLED_KEY) === '1'
+  const fromCookie = hasInstalledCookie()
+
+  if (!fromStorage && !fromCookie) return false
+
+  if (fromStorage && !fromCookie) setInstalledCookie()
+  if (fromCookie && !fromStorage) localStorage.setItem(INSTALLED_KEY, '1')
+
+  return true
 }
 
 /**
@@ -113,19 +151,16 @@ export function incrementDismissLoadCount() {
 function relatedAppLooksLikeThisPwa(app) {
   if (!app || typeof app !== 'object') return false
   if (app.platform === 'webapp') return true
-  // بعضی مرورگرها فقط url می‌دهند
   if (typeof app.url === 'string' && app.url.includes('manifest')) return true
   return false
 }
 
 /**
  * آیا PWA از قبل نصب است؟
- * ترتیب (همهٔ دستگاه‌ها):
- * 1) الان در حالت نصب‌شده باز شده (standalone / iOS home screen)
- * 2) فلگ محلی از نصب قبلی موفق
- * 3) getInstalledRelatedApps (کروم / اندروید / دسکتاپ)
- *
- * related-apps خالی ≠ نصب‌نشده — فلگ محلی را پاک نکن.
+ * ترتیب:
+ * 1) standalone
+ * 2) فلگ localStorage یا کوکی مشترک بین مرورگرها
+ * 3) getInstalledRelatedApps
  */
 export async function isPwaAlreadyInstalled() {
   if (isStandaloneMode()) {
@@ -137,7 +172,6 @@ export async function isPwaAlreadyInstalled() {
     return true
   }
 
-  // BIP ذخیره‌شده = مرورگر هنوز پیشنهاد نصب می‌دهد
   if (earlyDeferredPrompt) {
     return false
   }
@@ -150,7 +184,7 @@ export async function isPwaAlreadyInstalled() {
         return true
       }
     } catch (_) {
-      // پشتیبانی ناقص — فلگ محلی را دست نزن
+      // پشتیبانی ناقص
     }
   }
 

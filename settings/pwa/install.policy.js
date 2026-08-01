@@ -3,6 +3,10 @@
  */
 export const pwaInstallPolicy = {
   installedStorageKey: 'pwa-app-installed',
+  /** کوکی هم‌نام — بین مرورگرهای همان دستگاه/دامنه مشترک است (برخلاف localStorage) */
+  installedCookieName: 'pwa-app-installed',
+  /** عمر کوکی نصب (ثانیه) */
+  installedCookieMaxAgeSec: 60 * 60 * 24 * 365 * 2,
   dismissLoadsStorageKey: 'pwa-install-loads-since-dismiss',
   /** بعد از dismiss، هر N بار لود دوباره بنر را نشان بده */
   showEveryNLoads: 5,
