@@ -1,36 +1,47 @@
 /**
- * Location — وب (Geolocation API)
+ * Location — وب (Geolocation API + reverse geocode)
  */
 
 import { locationSettings } from '@settings/location/defaults.js'
+import { reverseGeocode } from './geocode.js'
 
 export function isLocationSupported() {
   return typeof navigator !== 'undefined' && Boolean(navigator.geolocation)
 }
 
 /**
- * @returns {Promise<{ latitude: number, longitude: number, accuracy: number|null, altitude: number|null, provider: string }>}
+ * @returns {Promise<{
+ *   latitude: number,
+ *   longitude: number,
+ *   accuracy: number|null,
+ *   altitude: number|null,
+ *   placeName: string,
+ *   address: string|null,
+ *   provider: string
+ * }>}
  */
-export function getCurrentPosition() {
+export async function getCurrentPosition() {
   if (!isLocationSupported()) {
-    return Promise.reject(new Error('موقعیت مکانی در این مرورگر پشتیبانی نمی‌شود.'))
+    throw new Error('موقعیت مکانی در این مرورگر پشتیبانی نمی‌شود.')
   }
 
-  return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve(normalizePosition(position, 'web'))
-      },
-      (error) => {
-        reject(new Error(mapGeoError(error)))
-      },
-      {
-        enableHighAccuracy: locationSettings.enableHighAccuracy,
-        timeout: locationSettings.timeoutMs,
-        maximumAge: locationSettings.maximumAgeMs,
-      },
-    )
+  const position = await new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: locationSettings.enableHighAccuracy,
+      timeout: locationSettings.timeoutMs,
+      maximumAge: locationSettings.maximumAgeMs,
+    })
+  }).catch((error) => {
+    throw new Error(mapGeoError(error))
   })
+
+  const base = normalizePosition(position, 'web')
+  try {
+    const place = await reverseGeocode(base.latitude, base.longitude)
+    return { ...base, placeName: place.placeName, address: place.address }
+  } catch (_) {
+    return { ...base, placeName: 'نام محل در دسترس نیست', address: null }
+  }
 }
 
 export function getLocationProviderLabel() {

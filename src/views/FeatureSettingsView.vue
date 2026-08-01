@@ -129,6 +129,10 @@
           </p>
 
           <div v-if="locationInfo" class="location-card" role="status">
+            <div v-if="locationInfo.placeName" class="location-row">
+              <span>نام محل</span>
+              <strong>{{ locationInfo.placeName }}</strong>
+            </div>
             <div class="location-row">
               <span>عرض جغرافیایی</span>
               <strong>{{ formatCoordinate(locationInfo.latitude) }}</strong>

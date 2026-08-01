@@ -1,6 +1,8 @@
 /**
- * اگر اپ native نصب باشد، URL وب در مرورگر اندروید را به اپ هدایت می‌کند.
- * داخل ViewApp/Capacitor یا وقتی کاربر صریحاً در وب مانده، اجرا نمی‌شود.
+ * باز کردن اپ native از مرورگر اندروید.
+ *
+ * توجه: Chrome وقتی کاربر URL را در نوار آدرس تایپ کند،
+ * هدایت خودکار به intent:// را بلاک می‌کند؛ باید با کلیک کاربر باز شود.
  */
 
 import { nativeAppOpenSettings } from '@settings/capacitor/nativeAppOpen.js'
@@ -8,11 +10,11 @@ import { nativeAppOpenSettings } from '@settings/capacitor/nativeAppOpen.js'
 const SKIP_KEY = 'viewapp-native-open-skip'
 const STAY_PARAM = 'stay'
 
-function isAndroidBrowser() {
+export function isAndroidBrowser() {
   return typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '')
 }
 
-function isAlreadyNativeShell() {
+export function isAlreadyNativeShell() {
   try {
     if (typeof window === 'undefined') return false
     if (window.__VIEWAPP_NATIVE__) return true
@@ -35,24 +37,24 @@ function markStayInBrowser() {
   }
 }
 
-function shouldSkip() {
-  try {
-    if (sessionStorage.getItem(SKIP_KEY) === '1') return true
-  } catch (_) {
-    // ignore
-  }
+export function shouldOfferNativeAppOpen() {
+  if (!nativeAppOpenSettings?.enabled) return false
+  if (typeof window === 'undefined') return false
+  if (!isAndroidBrowser()) return false
+  if (isAlreadyNativeShell()) return false
 
   try {
     const params = new URLSearchParams(window.location.search)
     if (params.get(STAY_PARAM) === '1') {
       markStayInBrowser()
-      return true
+      return false
     }
+    if (sessionStorage.getItem(SKIP_KEY) === '1') return false
   } catch (_) {
     // ignore
   }
 
-  return false
+  return true
 }
 
 function buildFallbackUrl() {
@@ -61,11 +63,15 @@ function buildFallbackUrl() {
   return url.toString()
 }
 
-function buildIntentUrl(settings) {
+export function buildNativeAppIntentUrl(settings = nativeAppOpenSettings) {
   const host = settings.httpsHost
-  const path = settings.pathPrefix.endsWith('/')
+  const pathPrefix = settings.pathPrefix.endsWith('/')
     ? settings.pathPrefix
     : `${settings.pathPrefix}/`
+  // مسیر فعلی را حفظ کن (deep link)
+  const path = window.location.pathname.startsWith(pathPrefix)
+    ? window.location.pathname
+    : pathPrefix
   const pathAndQuery = `${path}${window.location.search || ''}${window.location.hash || ''}`
   const fallback = encodeURIComponent(buildFallbackUrl())
 
@@ -79,33 +85,36 @@ function buildIntentUrl(settings) {
 }
 
 /**
- * @param {typeof nativeAppOpenSettings} [settings]
- * @returns {boolean} true اگر هدایت شروع شد
+ * باید فقط از رویداد کلیک کاربر صدا زده شود (Chrome بلاک نکند).
+ * @returns {boolean}
  */
-export function attemptOpenNativeApp(settings = nativeAppOpenSettings) {
-  if (!settings?.enabled) return false
-  if (typeof window === 'undefined') return false
-  if (!isAndroidBrowser()) return false
-  if (isAlreadyNativeShell()) return false
-  if (shouldSkip()) return false
+export function openNativeAppFromUserGesture(settings = nativeAppOpenSettings) {
+  if (!isAndroidBrowser() || isAlreadyNativeShell()) return false
 
-  const intentUrl = buildIntentUrl(settings)
-
-  try {
-    document.documentElement.classList.add('native-app-redirecting')
-  } catch (_) {
-    // ignore
-  }
-
-  // اگر اپ باز نشود، browser_fallback_url با stay=1 صفحه وب را نشان می‌دهد.
-  window.location.replace(intentUrl)
+  const intentUrl = buildNativeAppIntentUrl(settings)
+  window.location.href = intentUrl
   return true
 }
 
-export function isNativeAppRedirectPending() {
+/**
+ * @returns {Promise<boolean|null>} true نصب است، false نیست، null نامشخص
+ */
+export async function detectNativeAppInstalled(settings = nativeAppOpenSettings) {
+  if (!navigator.getInstalledRelatedApps) return null
   try {
-    return document.documentElement.classList.contains('native-app-redirecting')
+    const apps = await navigator.getInstalledRelatedApps()
+    if (!Array.isArray(apps) || !apps.length) return false
+    return apps.some(
+      (app) =>
+        app?.id === settings.androidPackage ||
+        (app?.platform === 'play' && app?.id === settings.androidPackage),
+    )
   } catch (_) {
-    return false
+    return null
   }
+}
+
+/** @deprecated استفاده از بنر + openNativeAppFromUserGesture */
+export function attemptOpenNativeApp() {
+  return false
 }
