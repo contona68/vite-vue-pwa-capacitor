@@ -44,31 +44,56 @@
           </li>
         </ul>
 
-        <!-- پنل دوربین: فقط وقتی قابلیت دوربین در پیش‌نویس فعال است -->
+        <div class="actions">
+          <button type="button" class="btn ghost" :disabled="saving" @click="onReset">
+            بازگشت به پیش‌فرض
+          </button>
+          <button type="submit" class="btn primary" :disabled="saving || !dirty">
+            {{ saving ? 'در حال ذخیره...' : 'ذخیره' }}
+          </button>
+        </div>
+
+        <!-- تست دوربین زیر دکمه‌های ذخیره -->
         <section v-if="draftFeatures.camera" class="camera-panel" aria-labelledby="camera-panel-title">
           <div class="camera-panel-head">
-            <h2 id="camera-panel-title">دوربین</h2>
+            <h2 id="camera-panel-title">تست دوربین</h2>
             <span class="camera-provider">منبع: {{ cameraProviderLabel }}</span>
           </div>
           <p class="camera-hint">
-            «باز کردن / ریست» پیش‌نمایش را شروع یا نوسازی می‌کند؛ «عکس بگیر» همان فریم را ثبت و نمایش می‌دهد.
+            «باز کردن / ریست» پیش‌نمایش را شروع یا نوسازی می‌کند؛ «عکس بگیر» همان فریم را ثبت و کنارش نشان می‌دهد.
           </p>
 
-          <div class="camera-preview-wrap">
-            <video
-              ref="videoRef"
-              class="camera-preview"
-              autoplay
-              playsinline
-              muted
-              :class="{ 'is-active': cameraReady }"
-            />
-            <p v-if="!cameraReady && !capturedPhoto" class="camera-placeholder">
-              پیش‌نمایش دوربین اینجا دیده می‌شود
-            </p>
-            <p v-else-if="cameraMode === 'native-prompt'" class="camera-placeholder">
-              دوربین native آماده است؛ با «عکس بگیر» دیالوگ دستگاه باز می‌شود
-            </p>
+          <div class="camera-media-row">
+            <div class="camera-box">
+              <span class="camera-box-label">پیش‌نمایش</span>
+              <div class="camera-preview-wrap">
+                <video
+                  ref="videoRef"
+                  class="camera-preview"
+                  autoplay
+                  playsinline
+                  muted
+                  :class="{ 'is-active': cameraReady }"
+                />
+                <p v-if="!cameraReady" class="camera-placeholder">پیش‌نمایش</p>
+                <p v-else-if="cameraMode === 'native-prompt'" class="camera-placeholder native-hint">
+                  آمادهٔ native
+                </p>
+              </div>
+            </div>
+
+            <div class="camera-box">
+              <span class="camera-box-label">عکس</span>
+              <div class="camera-preview-wrap captured-wrap">
+                <img
+                  v-if="capturedPhoto"
+                  :src="capturedPhoto"
+                  alt="عکس گرفته‌شده از دوربین"
+                  class="captured-photo"
+                />
+                <p v-else class="camera-placeholder">هنوز عکسی نیست</p>
+              </div>
+            </div>
           </div>
 
           <div class="camera-actions">
@@ -91,21 +116,7 @@
           </div>
 
           <p v-if="cameraError" class="error" role="alert">{{ cameraError }}</p>
-
-          <figure v-if="capturedPhoto" class="captured-figure">
-            <figcaption>عکس گرفته‌شده</figcaption>
-            <img :src="capturedPhoto" alt="عکس گرفته‌شده از دوربین" class="captured-photo" />
-          </figure>
         </section>
-
-        <div class="actions">
-          <button type="button" class="btn ghost" :disabled="saving" @click="onReset">
-            بازگشت به پیش‌فرض
-          </button>
-          <button type="submit" class="btn primary" :disabled="saving || !dirty">
-            {{ saving ? 'در حال ذخیره...' : 'ذخیره' }}
-          </button>
-        </div>
       </form>
     </section>
   </main>
@@ -426,6 +437,7 @@ h1 {
   border-radius: 0.7rem;
   background: #fff;
   border: 1px solid #e2e8f0;
+  margin-top: 0.35rem;
 }
 
 .camera-panel-head {
@@ -453,10 +465,28 @@ h1 {
   line-height: 1.4;
 }
 
+.camera-media-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.camera-box {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.camera-box-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
 .camera-preview-wrap {
   position: relative;
-  min-height: 180px;
-  border-radius: 0.6rem;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.55rem;
   overflow: hidden;
   background: #0f172a;
 }
@@ -464,7 +494,7 @@ h1 {
 .camera-preview {
   display: block;
   width: 100%;
-  max-height: 280px;
+  height: 100%;
   object-fit: cover;
   background: #0f172a;
   opacity: 0;
@@ -480,37 +510,33 @@ h1 {
   display: grid;
   place-items: center;
   margin: 0;
+  padding: 0.35rem;
   color: #94a3b8;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
+  text-align: center;
   pointer-events: none;
+}
+
+.camera-placeholder.native-hint {
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.captured-wrap {
+  background: #f1f5f9;
+}
+
+.captured-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .camera-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-}
-
-.captured-figure {
-  margin: 0;
-  display: grid;
-  gap: 0.35rem;
-}
-
-.captured-figure figcaption {
-  font-size: 0.78rem;
-  color: #475569;
-  font-weight: 600;
-}
-
-.captured-photo {
-  display: block;
-  width: 100%;
-  max-height: 280px;
-  object-fit: contain;
-  border-radius: 0.55rem;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
 }
 
 .actions {
