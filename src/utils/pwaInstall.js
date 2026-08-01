@@ -1,11 +1,23 @@
-import { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari } from '@/utils/device'
+import {
+  browserLikelySupportsBeforeInstallPrompt,
+  getInstallSurface,
+  isAndroidDevice,
+  isIosDevice,
+  isIosSafari,
+} from '@/utils/device'
 import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 
 const INSTALLED_KEY = pwaInstallPolicy.installedStorageKey
 const DISMISS_LOADS_KEY = pwaInstallPolicy.dismissLoadsStorageKey
 const SHOW_EVERY_N_LOADS = pwaInstallPolicy.showEveryNLoads
 
-export { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari }
+export {
+  browserLikelySupportsBeforeInstallPrompt,
+  getInstallSurface,
+  isAndroidDevice,
+  isIosDevice,
+  isIosSafari,
+}
 
 /** رویداد beforeinstallprompt که قبل از mount اپ ممکن است بیاید */
 let earlyDeferredPrompt = null

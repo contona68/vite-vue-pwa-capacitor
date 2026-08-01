@@ -119,6 +119,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
+  browserLikelySupportsBeforeInstallPrompt,
   consumeEarlyDeferredPrompt,
   getInstallSurface,
   hasInstalledFlag,
@@ -197,11 +198,14 @@ async function showNativeInstallBanner() {
 }
 
 /**
- * راهنمای دستی — فقط iOS یا دسکتاپ؛ اندروید هرگز.
- * ظاهر iOS فقط وقتی surface === 'ios'.
+ * راهنمای دستی:
+ * - iOS: همیشه (Share / Add to Home Screen)
+ * - دسکتاپ: فقط مرورگرهایی که BIP نمی‌دهند (مثلاً Firefox/Safari)
+ * - اندروید / کروم دسکتاپ: هرگز — فقط بنر native با beforeinstallprompt
  */
 async function showManualGuideBanner() {
   if (surface === 'android') return
+  if (surface === 'desktop' && browserLikelySupportsBeforeInstallPrompt()) return
   if (surface !== 'ios' && surface !== 'desktop') return
   if (nativeInstallReady || deferredPrompt) return
   if (await refreshInstalledState()) return
@@ -221,6 +225,8 @@ function clearManualGuideTimer() {
 
 function scheduleDesktopManualGuideFallback() {
   if (surface !== 'desktop') return
+  // کروم/اج: منتظر BIP بمان؛ راهنمای «منوی مرورگر» را زود نشان نده
+  if (browserLikelySupportsBeforeInstallPrompt()) return
   clearManualGuideTimer()
   manualGuideTimer = window.setTimeout(() => {
     manualGuideTimer = null
@@ -305,8 +311,12 @@ async function restoreBannerAfterUpdate() {
     await showNativeInstallBanner()
     return
   }
-  // بعد از آپدیت فقط همان سطح قبلی را برگردان؛ iOS→iOS، دسکتاپ→دسکتاپ
-  if (surface === 'ios' || surface === 'desktop') {
+  if (surface === 'ios') {
+    await showManualGuideBanner()
+    return
+  }
+  // دسکتاپ غیرکرومیوم: راهنمای دستی؛ کروم فقط اگر BIP برگشت
+  if (surface === 'desktop' && !browserLikelySupportsBeforeInstallPrompt()) {
     await showManualGuideBanner()
   }
 }
@@ -347,8 +357,13 @@ onMounted(async () => {
   // ۱) اول: نصب هست یا نه؟
   if (await refreshInstalledState()) return
 
-  // ۲) BIP زودهنگام (قبل از mount)
-  applyDeferredPrompt(consumeEarlyDeferredPrompt())
+  // ۲) BIP زودهنگام (قبل از mount) — اگر آمد، دیگر با related-apps پاکش نکن
+  const gotEarlyPrompt = applyDeferredPrompt(consumeEarlyDeferredPrompt())
+  if (gotEarlyPrompt && deferredPrompt) {
+    incrementDismissLoadCount()
+    await showNativeInstallBanner()
+    return
+  }
   if (await refreshInstalledState()) return
 
   incrementDismissLoadCount()
