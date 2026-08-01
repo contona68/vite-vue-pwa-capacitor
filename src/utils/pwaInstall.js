@@ -24,6 +24,24 @@ let earlyDeferredPrompt = null
 let earlyCaptureBound = false
 
 /**
+ * خانوادهٔ مرورگر برای فلگ نصب — تا نصب کروم بنر فایرفاکس را مخفی نکند و برعکس.
+ * @returns {'chromium' | 'firefox' | 'safari' | 'ios'}
+ */
+export function getPwaInstallBrowserFamily() {
+  if (isIosDevice()) return 'ios'
+
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : ''
+  if (/Firefox|FxiOS/i.test(ua)) return 'firefox'
+
+  if (browserUsesManualInstallGuide()) return 'safari'
+  return 'chromium'
+}
+
+function getFamilyInstalledKey(family = getPwaInstallBrowserFamily()) {
+  return `${INSTALLED_KEY}:${family}`
+}
+
+/**
  * باید قبل از هر await در bootstrap صدا زده شود؛
  * روی موبایل BIP اغلب قبل از mount شدن Vue می‌آید و وگرنه از دست می‌رود.
  */
@@ -64,16 +82,33 @@ export function discardEarlyDeferredPrompt() {
 }
 
 export function markPwaInstalled() {
-  localStorage.setItem(INSTALLED_KEY, '1')
+  const family = getPwaInstallBrowserFamily()
+  localStorage.setItem(getFamilyInstalledKey(family), '1')
+
+  // کلید قدیمی فقط برای کرومیوم — سازگاری با جلسات قبلی
+  if (family === 'chromium') {
+    localStorage.setItem(INSTALLED_KEY, '1')
+  }
+
   localStorage.removeItem(DISMISS_LOADS_KEY)
 }
 
 export function clearPwaInstalledFlag() {
-  localStorage.removeItem(INSTALLED_KEY)
+  const family = getPwaInstallBrowserFamily()
+  localStorage.removeItem(getFamilyInstalledKey(family))
+  if (family === 'chromium') {
+    localStorage.removeItem(INSTALLED_KEY)
+  }
 }
 
 export function hasInstalledFlag() {
-  return localStorage.getItem(INSTALLED_KEY) === '1'
+  const family = getPwaInstallBrowserFamily()
+  if (localStorage.getItem(getFamilyInstalledKey(family)) === '1') return true
+
+  // فقط کرومیوم کلید بدون پسوند قدیمی را می‌خواند (نصب کروم ≠ نصب فایرفاکس)
+  if (family === 'chromium' && localStorage.getItem(INSTALLED_KEY) === '1') return true
+
+  return false
 }
 
 /**
@@ -110,13 +145,12 @@ export async function hasInstalledRelatedWebApp() {
 }
 
 /**
- * تشخیص نصب — اولویت برای جلوگیری از بنر غلط روی موبایل:
- * 1) standalone
- * 2) مرورگر راهنمای دستی (Firefox/Safari/iOS): فقط standalone
- *    — فلگ localStorage معمولاً از کروم می‌آید و بنر فایرفاکس را غلط مخفی می‌کند
- * 3) getInstalledRelatedApps + فلگ (فقط کرومیوم)
+ * تشخیص نصب:
+ * 1) standalone → نصب است + فلگ همان خانواده مرورگر
+ * 2) فلگ همان خانواده (firefox/ios/safari/chromium جدا)
+ * 3) فقط کرومیوم: getInstalledRelatedApps
  *
- * beforeinstallprompt به‌تنهایی معیار «نصب‌نشده» نیست (گاهی بعد از نصب هم می‌آید).
+ * نکته: فلگ کروم بنر فایرفاکس را مخفی نمی‌کند و برعکس.
  */
 export async function isPwaAlreadyInstalled() {
   if (isStandaloneMode()) {
@@ -125,18 +159,18 @@ export async function isPwaAlreadyInstalled() {
     return true
   }
 
-  // فایرفاکس/سافاری: بدون BIP؛ فقط وقتی داخل پوستهٔ نصب‌شده هستیم مخفی کن
+  if (hasInstalledFlag()) {
+    discardEarlyDeferredPrompt()
+    return true
+  }
+
+  // related-apps فقط برای کرومیوم معنی دارد
   if (browserUsesManualInstallGuide()) {
     return false
   }
 
   if (await hasInstalledRelatedWebApp()) {
     markPwaInstalled()
-    discardEarlyDeferredPrompt()
-    return true
-  }
-
-  if (hasInstalledFlag()) {
     discardEarlyDeferredPrompt()
     return true
   }

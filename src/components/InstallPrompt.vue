@@ -281,8 +281,12 @@ async function onPrimary() {
     return
   }
 
-  // راهنمای دستی → متوجه شدم
-  dismiss()
+  // راهنمای دستی: تأیید = دیگر بنر نصب این مرورگر نشان داده نشود
+  // (dismiss جداست و فقط تا N لود بعدی مخفی می‌کند)
+  alreadyInstalled = true
+  markPwaInstalled()
+  clearShowTimer()
+  hideBanner()
 }
 
 function bindInstallListeners() {
