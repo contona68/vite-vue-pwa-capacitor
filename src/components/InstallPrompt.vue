@@ -1,104 +1,119 @@
 <template>
-  <Transition name="banner">
-    <aside
-      v-if="visible"
-      class="install-banner"
-      :class="{ 'is-guide': isGuide }"
-      role="dialog"
-      :aria-labelledby="bannerTitleId"
-    >
-      <img class="app-icon" :src="appIcon" alt="" width="48" height="48" />
+  <Teleport to="body">
+    <Transition name="banner">
+      <aside
+        v-if="visible"
+        class="install-banner"
+        :class="{ 'is-guide': isGuide, 'is-ios-guide': isIosGuide }"
+        role="dialog"
+        :aria-labelledby="bannerTitleId"
+      >
+        <img class="app-icon" :src="appIcon" alt="" width="48" height="48" />
 
-      <!-- راهنمای دستی: فقط iOS (یا دسکتاپ بدون BIP) -->
-      <template v-if="isGuide">
-        <div class="text">
-          <strong :id="bannerTitleId">{{ guideTitle }}</strong>
-          <p v-if="needsSafariHint">{{ pwaUi.iosNeedsSafari }}</p>
-          <p v-else>{{ guideIntro }}</p>
+        <!-- راهنمای iOS: فقط وقتی surface === 'ios' و شرط‌های نمایش برقرارند -->
+        <template v-if="isIosGuide">
+          <div class="text">
+            <strong :id="bannerTitleId">{{ pwaUi.iosGuideTitle }}</strong>
+            <p v-if="needsSafariHint">{{ pwaUi.iosNeedsSafari }}</p>
+            <p v-else>{{ pwaUi.iosGuideIntro }}</p>
 
-          <ol v-if="surface === 'ios'" class="guide-steps" aria-label="مراحل نصب">
-            <li>
-              <span class="step-badge" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                  <path
-                    d="M12 4v10M8.5 7.5 12 4l3.5 3.5"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M6 13v5.2A1.8 1.8 0 0 0 7.8 20h8.4a1.8 1.8 0 0 0 1.8-1.8V13"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </span>
-              <span>دکمه <b>Share</b> پایین Safari را بزنید</span>
-            </li>
-            <li>
-              <span class="step-badge" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                  <rect
-                    x="5"
-                    y="5"
-                    width="14"
-                    height="14"
-                    rx="2.5"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  />
-                  <path
-                    d="M12 9v6M9 12h6"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </span>
-              <span>
-                گزینه <b>Add to Home Screen</b>
-                <span class="fa-hint">(افزودن به صفحه اصلی)</span>
-                را انتخاب کنید
-              </span>
-            </li>
-          </ol>
+            <ol class="guide-steps" aria-label="مراحل نصب">
+              <li>
+                <span class="step-badge" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                    <path
+                      d="M12 4v10M8.5 7.5 12 4l3.5 3.5"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M6 13v5.2A1.8 1.8 0 0 0 7.8 20h8.4a1.8 1.8 0 0 0 1.8-1.8V13"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </span>
+                <span>دکمه <b>Share</b> پایین Safari را بزنید</span>
+              </li>
+              <li>
+                <span class="step-badge" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                    <rect
+                      x="5"
+                      y="5"
+                      width="14"
+                      height="14"
+                      rx="2.5"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <path
+                      d="M12 9v6M9 12h6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </span>
+                <span>
+                  گزینه <b>Add to Home Screen</b>
+                  <span class="fa-hint">(افزودن به صفحه اصلی)</span>
+                  را انتخاب کنید
+                </span>
+              </li>
+            </ol>
+          </div>
 
-          <ol v-else class="guide-steps" aria-label="مراحل نصب">
-            <li>
-              <span class="step-badge" aria-hidden="true">1</span>
-              <span>از منوی مرورگر گزینه <b>Install app</b> یا <b>نصب برنامه</b> را پیدا کنید</span>
-            </li>
-            <li>
-              <span class="step-badge" aria-hidden="true">2</span>
-              <span>نصب را تأیید کنید تا میانبر روی دستگاه ساخته شود</span>
-            </li>
-          </ol>
-        </div>
+          <div class="actions">
+            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.guideDismiss }}</button>
+            <button type="button" class="btn primary" @click="dismiss">{{ pwaUi.guideConfirm }}</button>
+          </div>
 
-        <div class="actions">
-          <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.guideDismiss }}</button>
-          <button type="button" class="btn primary" @click="dismiss">{{ pwaUi.guideConfirm }}</button>
-        </div>
+          <div class="ios-pointer" aria-hidden="true" />
+        </template>
 
-        <div v-if="surface === 'ios'" class="ios-pointer" aria-hidden="true" />
-      </template>
+        <!-- راهنمای دستی دسکتاپ (بدون BIP) — هرگز ظاهر iOS ندارد -->
+        <template v-else-if="isDesktopGuide">
+          <div class="text">
+            <strong :id="bannerTitleId">{{ pwaUi.manualGuideTitle }}</strong>
+            <p>{{ pwaUi.manualGuideIntro }}</p>
 
-      <!-- بنر native: اندروید / کروم دسکتاپ با beforeinstallprompt -->
-      <template v-else>
-        <div class="text">
-          <strong id="install-title">{{ pwaUi.installTitle }}</strong>
-          <p>{{ pwaUi.installBody }}</p>
-        </div>
+            <ol class="guide-steps" aria-label="مراحل نصب">
+              <li>
+                <span class="step-badge" aria-hidden="true">1</span>
+                <span>از منوی مرورگر گزینه <b>Install app</b> یا <b>نصب برنامه</b> را پیدا کنید</span>
+              </li>
+              <li>
+                <span class="step-badge" aria-hidden="true">2</span>
+                <span>نصب را تأیید کنید تا میانبر روی دستگاه ساخته شود</span>
+              </li>
+            </ol>
+          </div>
 
-        <div class="actions">
-          <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.installDismiss }}</button>
-          <button type="button" class="btn primary" @click="install">{{ pwaUi.installAccept }}</button>
-        </div>
-      </template>
-    </aside>
-  </Transition>
+          <div class="actions">
+            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.guideDismiss }}</button>
+            <button type="button" class="btn primary" @click="dismiss">{{ pwaUi.guideConfirm }}</button>
+          </div>
+        </template>
+
+        <!-- بنر native: اندروید / کروم دسکتاپ با beforeinstallprompt -->
+        <template v-else>
+          <div class="text">
+            <strong id="install-title">{{ pwaUi.installTitle }}</strong>
+            <p>{{ pwaUi.installBody }}</p>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.installDismiss }}</button>
+            <button type="button" class="btn primary" @click="install">{{ pwaUi.installAccept }}</button>
+          </div>
+        </template>
+      </aside>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
@@ -132,14 +147,12 @@ const surface = getInstallSurface()
 const onIosSafari = isIosSafari()
 
 const pwaUi = computed(() => appConfig.value.pwaUi)
-const needsSafariHint = computed(() => isGuide.value && surface === 'ios' && !onIosSafari)
+/** بنر Share / Add to Home Screen فقط روی iOS */
+const isIosGuide = computed(() => isGuide.value && surface === 'ios')
+/** راهنمای منوی مرورگر فقط روی دسکتاپ */
+const isDesktopGuide = computed(() => isGuide.value && surface === 'desktop')
+const needsSafariHint = computed(() => isIosGuide.value && !onIosSafari)
 const bannerTitleId = computed(() => (isGuide.value ? 'guide-install-title' : 'install-title'))
-const guideTitle = computed(() =>
-  surface === 'ios' ? pwaUi.value.iosGuideTitle : pwaUi.value.manualGuideTitle,
-)
-const guideIntro = computed(() =>
-  surface === 'ios' ? pwaUi.value.iosGuideIntro : pwaUi.value.manualGuideIntro,
-)
 
 let deferredPrompt = null
 let alreadyInstalled = false
@@ -156,19 +169,25 @@ function canShowBanner() {
 
 function hideBanner() {
   visible.value = false
+  isGuide.value = false
 }
 
+/**
+ * همیشه اول وضعیت نصب را بگیر؛ اگر نصب است بنر را نشان نده.
+ */
 async function refreshInstalledState() {
   alreadyInstalled = await isPwaAlreadyInstalled()
   if (alreadyInstalled) {
     deferredPrompt = null
+    nativeInstallReady = false
     clearManualGuideTimer()
     hideBanner()
   }
   return alreadyInstalled
 }
 
-function showNativeInstallBanner() {
+async function showNativeInstallBanner() {
+  if (await refreshInstalledState()) return
   if (!canShowBanner() || !deferredPrompt) {
     hideBanner()
     return
@@ -177,9 +196,13 @@ function showNativeInstallBanner() {
   visible.value = true
 }
 
+/**
+ * راهنمای دستی — فقط iOS یا دسکتاپ؛ اندروید هرگز.
+ * ظاهر iOS فقط وقتی surface === 'ios'.
+ */
 async function showManualGuideBanner() {
-  // اندروید هرگز راهنمای دستی نمی‌بیند
   if (surface === 'android') return
+  if (surface !== 'ios' && surface !== 'desktop') return
   if (nativeInstallReady || deferredPrompt) return
   if (await refreshInstalledState()) return
   if (!canShowBanner()) {
@@ -208,7 +231,7 @@ function scheduleDesktopManualGuideFallback() {
 
 function applyDeferredPrompt(event) {
   if (!event) return false
-  // اگر از قبل نصب است (standalone / فلگ)، BIP را نادیده بگیر
+  // اگر از قبل نصب است، BIP را نادیده بگیر
   if (alreadyInstalled || isStandaloneMode() || hasInstalledFlag()) {
     alreadyInstalled = true
     markPwaInstalled()
@@ -223,7 +246,8 @@ function applyDeferredPrompt(event) {
     hideBanner()
     return true
   }
-  showNativeInstallBanner()
+  isGuide.value = false
+  visible.value = true
   return true
 }
 
@@ -246,6 +270,11 @@ function onDisplayModeChange() {
     markPwaInstalled()
     hideBanner()
   }
+}
+
+async function onVisibilityOrPageshow() {
+  if (document.visibilityState && document.visibilityState !== 'visible') return
+  await refreshInstalledState()
 }
 
 function dismiss() {
@@ -271,11 +300,13 @@ async function install() {
 }
 
 async function restoreBannerAfterUpdate() {
+  if (await refreshInstalledState()) return
   if (deferredPrompt) {
-    showNativeInstallBanner()
+    await showNativeInstallBanner()
     return
   }
-  if (surface === 'ios') {
+  // بعد از آپدیت فقط همان سطح قبلی را برگردان؛ iOS→iOS، دسکتاپ→دسکتاپ
+  if (surface === 'ios' || surface === 'desktop') {
     await showManualGuideBanner()
   }
 }
@@ -285,6 +316,8 @@ function bindInstallListeners() {
   listenersBound = true
   window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
   window.addEventListener('appinstalled', onAppInstalled)
+  window.addEventListener('pageshow', onVisibilityOrPageshow)
+  document.addEventListener('visibilitychange', onVisibilityOrPageshow)
   standaloneMedia.addEventListener('change', onDisplayModeChange)
   fullscreenMedia.addEventListener('change', onDisplayModeChange)
 }
@@ -294,6 +327,8 @@ function unbindInstallListeners() {
   listenersBound = false
   window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
   window.removeEventListener('appinstalled', onAppInstalled)
+  window.removeEventListener('pageshow', onVisibilityOrPageshow)
+  document.removeEventListener('visibilitychange', onVisibilityOrPageshow)
   standaloneMedia.removeEventListener('change', onDisplayModeChange)
   fullscreenMedia.removeEventListener('change', onDisplayModeChange)
 }
@@ -309,31 +344,31 @@ watch(needRefresh, (updating) => {
 onMounted(async () => {
   bindInstallListeners()
 
-  // اگر نصب است، هیچ بنر/راهنمای نصبی نشان نده
+  // ۱) اول: نصب هست یا نه؟
   if (await refreshInstalledState()) return
 
-  // رویدادی که موقع awaitهای bootstrap آمده بود
+  // ۲) BIP زودهنگام (قبل از mount)
   applyDeferredPrompt(consumeEarlyDeferredPrompt())
-
   if (await refreshInstalledState()) return
 
   incrementDismissLoadCount()
 
+  // ۳) بنر native اگر BIP داریم
   if (deferredPrompt) {
-    showNativeInstallBanner()
+    await showNativeInstallBanner()
     return
   }
 
+  // ۴) iOS → فقط راهنمای Share (روی غیر iOS هرگز)
   if (surface === 'ios') {
     await showManualGuideBanner()
     return
   }
 
-  if (surface === 'android') {
-    // فقط بنر native با دکمه نصب؛ بدون راهنمای Share/iOS
-    return
-  }
+  // ۵) اندروید بدون BIP → بنر نشان نده (صبر برای BIP)
+  if (surface === 'android') return
 
+  // ۶) دسکتاپ بدون BIP → راهنمای منوی مرورگر (نه ظاهر iOS)
   scheduleDesktopManualGuideFallback()
 })
 
@@ -346,9 +381,14 @@ onUnmounted(() => {
 <style scoped>
 .install-banner {
   position: fixed;
-  z-index: 40;
-  inset-inline: 1rem;
-  bottom: 1rem;
+  z-index: 10040;
+  inset-inline: 0.75rem;
+  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  width: calc(100% - 1.5rem);
+  max-width: min(36rem, calc(100vw - 1.5rem));
+  margin-inline: auto;
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;
@@ -359,6 +399,7 @@ onUnmounted(() => {
   color: #0f172a;
   border: 1px solid #e2e8f0;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  pointer-events: auto;
 }
 
 .install-banner.is-guide {
@@ -490,6 +531,11 @@ onUnmounted(() => {
   border-bottom: 1px solid #bae6fd;
   transform: rotate(45deg);
   box-shadow: 2px 2px 4px rgba(14, 165, 233, 0.08);
+}
+
+.install-banner.is-ios-guide {
+  /* برای قرارگیری فلش Share نسبت به خود بنر */
+  position: fixed;
 }
 
 .banner-enter-active,

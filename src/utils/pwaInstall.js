@@ -26,8 +26,8 @@ export function startEarlyBeforeInstallPromptCapture() {
 function onEarlyBeforeInstallPrompt(event) {
   event.preventDefault()
   earlyDeferredPrompt = event
-  // فقط وقتی هنوز نصب‌شده علامت نخورده — BIP یعنی مرورگر هنوز نصب را ممکن می‌داند
-  if (!hasInstalledFlag() && !isStandaloneMode()) {
+  // BIP یعنی مرورگر هنوز نصب را ممکن می‌داند → نصب‌شده نیست
+  if (!isStandaloneMode()) {
     clearPwaInstalledFlag()
   }
 }
@@ -61,10 +61,15 @@ export function hasInstalledFlag() {
   return localStorage.getItem(INSTALLED_KEY) === '1'
 }
 
+/**
+ * آیا الان داخل پوستهٔ نصب‌شده (standalone / iOS home screen / …) هستیم؟
+ */
 export function isStandaloneMode() {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.matchMedia('(display-mode: window-controls-overlay)').matches ||
     window.navigator.standalone === true ||
     document.referrer.includes('android-app://')
   )
@@ -93,10 +98,22 @@ export function incrementDismissLoadCount() {
   setLoadsSinceDismiss(loads + 1)
 }
 
+function relatedAppLooksLikeThisPwa(app) {
+  if (!app || typeof app !== 'object') return false
+  if (app.platform === 'webapp') return true
+  // بعضی مرورگرها فقط url می‌دهند
+  if (typeof app.url === 'string' && app.url.includes('manifest')) return true
+  return false
+}
+
 /**
  * آیا PWA از قبل نصب است؟
- * اولویت: standalone → فلگ محلی (نصب قبلی) → related-apps (تأیید مثبت)
- * فلگ را فقط با شواهد مثبت پاک نکن (related-apps خالی ≠ نصب‌نشده).
+ * ترتیب (همهٔ دستگاه‌ها):
+ * 1) الان در حالت نصب‌شده باز شده (standalone / iOS home screen)
+ * 2) فلگ محلی از نصب قبلی موفق
+ * 3) getInstalledRelatedApps (کروم / اندروید / دسکتاپ)
+ *
+ * related-apps خالی ≠ نصب‌نشده — فلگ محلی را پاک نکن.
  */
 export async function isPwaAlreadyInstalled() {
   if (isStandaloneMode()) {
@@ -104,12 +121,11 @@ export async function isPwaAlreadyInstalled() {
     return true
   }
 
-  // نصب قبلی (دسکتاپ/موبایل) — دوباره بنر نصب نشان نده
   if (hasInstalledFlag()) {
     return true
   }
 
-  // BIP ذخیره‌شده یعنی مرورگر هنوز نصب را پیشنهاد می‌دهد
+  // BIP ذخیره‌شده = مرورگر هنوز پیشنهاد نصب می‌دهد
   if (earlyDeferredPrompt) {
     return false
   }
@@ -117,10 +133,7 @@ export async function isPwaAlreadyInstalled() {
   if ('getInstalledRelatedApps' in navigator) {
     try {
       const relatedApps = await navigator.getInstalledRelatedApps()
-      const installed = Array.isArray(relatedApps)
-        ? relatedApps.some((app) => app?.platform === 'webapp')
-        : false
-      if (installed) {
+      if (Array.isArray(relatedApps) && relatedApps.some(relatedAppLooksLikeThisPwa)) {
         markPwaInstalled()
         return true
       }

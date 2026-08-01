@@ -8,8 +8,19 @@ function updatesUiEnabled() {
   return isFeatureEnabled('updateBanner') && isPwaCapabilityEnabled('updateBanner')
 }
 
-function announceUpdateAvailable() {
+/**
+ * فقط وقتی نسخهٔ جدید واقعاً waiting است بنر را نشان بده.
+ * @param {ServiceWorkerRegistration | null | undefined} registration
+ * @param {{ trustPlugin?: boolean }} [options]
+ */
+function announceUpdateAvailable(registration, options = {}) {
   if (!updatesUiEnabled()) return
+
+  const trustPlugin = Boolean(options.trustPlugin)
+  if (!trustPlugin && !hasWaitingWorker(registration)) {
+    return
+  }
+
   needRefresh.value = true
   console.info('[PWA] Update available — banner should show')
 }
@@ -19,7 +30,7 @@ function hasWaitingWorker(registration) {
 }
 
 /**
- * اگر SW در حالت waiting باشد (نسخه جدید نصب‌شده و منتظر فعال‌سازی)، بنر را نشان بده.
+ * فقط SW در حالت waiting = آپدیت واقعی (نه نصب اول).
  */
 function watchRegistrationForWaiting(registration) {
   if (!registration) return () => {}
@@ -27,12 +38,14 @@ function watchRegistrationForWaiting(registration) {
   const onStateChange = (worker) => {
     if (!worker) return () => {}
     const handle = () => {
-      // installed + controller = آپدیت (نه نصب اول)
-      if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-        announceUpdateAvailable()
-      }
-      if (worker.state === 'installed' && registration.waiting === worker) {
-        announceUpdateAvailable()
+      // آپدیت واقعی: worker جدید installed شده و در waiting است و قبلاً controller داشته‌ایم
+      const isRealUpdate =
+        worker.state === 'installed' &&
+        registration.waiting === worker &&
+        Boolean(navigator.serviceWorker.controller)
+
+      if (isRealUpdate) {
+        announceUpdateAvailable(registration)
       }
     }
     worker.addEventListener('statechange', handle)
@@ -40,8 +53,8 @@ function watchRegistrationForWaiting(registration) {
     return () => worker.removeEventListener('statechange', handle)
   }
 
-  if (hasWaitingWorker(registration)) {
-    announceUpdateAvailable()
+  if (hasWaitingWorker(registration) && navigator.serviceWorker.controller) {
+    announceUpdateAvailable(registration)
   }
 
   let stopInstallingWatch = null
@@ -98,8 +111,8 @@ export async function setupPwaRuntime() {
       await registration.update()
       // کمی صبر: روی موبایل گاهی waiting بعد از resolve شدن update ست می‌شود
       await new Promise((resolve) => window.setTimeout(resolve, 300))
-      if (hasWaitingWorker(registration)) {
-        announceUpdateAvailable()
+      if (hasWaitingWorker(registration) && navigator.serviceWorker.controller) {
+        announceUpdateAvailable(registration)
       }
       console.info('[PWA] Checked for service worker update')
     } catch (error) {
@@ -118,7 +131,6 @@ export async function setupPwaRuntime() {
   }
 
   function scheduleMobileFriendlyRechecks(registration) {
-    // PWA موبایل اغلب بعد از برگشت از پس‌زمینه دیر آپدیت را می‌بیند
     ;[1000, 3000, 8000, 20000].forEach((ms) => {
       window.setTimeout(() => {
         checkForUpdate(registration)
@@ -129,7 +141,10 @@ export async function setupPwaRuntime() {
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
-      if (enableUpdateUi) announceUpdateAvailable()
+      // vite-plugin-pwa فقط وقتی SW جدید waiting است این را صدا می‌زند
+      if (enableUpdateUi) {
+        announceUpdateAvailable(activeRegistration, { trustPlugin: true })
+      }
     },
     onRegisteredSW(swUrl, registration) {
       if (!registration) return
@@ -144,6 +159,7 @@ export async function setupPwaRuntime() {
       console.info('[PWA] Service Worker registered:', swUrl)
     },
     onOfflineReady() {
+      // نصب اول SW — بنر آپدیت نشان نده
       console.info('[PWA] Login shell ready to work offline')
     },
   })
@@ -161,14 +177,12 @@ export async function setupPwaRuntime() {
     }
   }
 
-  // موبایل / PWA: focus به‌تنهایی کافی نیست
   document.addEventListener('visibilitychange', onVisible)
   window.addEventListener('focus', onVisible)
   window.addEventListener('pageshow', onVisible)
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      // بعد از اعمال آپدیت، پرچم را پاک کن تا بنر نماند
       needRefresh.value = false
     })
   }

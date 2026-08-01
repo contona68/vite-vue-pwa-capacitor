@@ -33,6 +33,26 @@ export const vitePwaOptions = {
     scope: './',
     start_url: './',
     prefer_related_applications: false,
+    /**
+     * اگر PWA نصب باشد، لینک‌های داخل scope ترجیحاً داخل اپ باز شوند
+     * (Chrome/Edge؛ نه Safari/iOS).
+     * @see https://developer.chrome.com/docs/capabilities/pwa-navigation-management
+     */
+    handle_links: 'preferred',
+    /**
+     * وقتی اپ لانچ می‌شود: پنجرهٔ موجود را بیاور و به همان URL برو
+     * (اگر پنجره‌ای نبود، پنجرهٔ جدید).
+     */
+    launch_handler: {
+      client_mode: ['navigate-existing', 'auto'],
+    },
+    // برای getInstalledRelatedApps روی کروم/اندروید/دسکتاپ
+    related_applications: [
+      {
+        platform: 'webapp',
+        url: './manifest.webmanifest',
+      },
+    ],
     icons: [
       {
         src: 'icons/android-chrome-192x192.png',
