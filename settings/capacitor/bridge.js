@@ -39,4 +39,10 @@ export const viewAppBridge = {
 
   /** موقعیت مکانی: ViewAppNative.getLocation() → { latitude, longitude, accuracy } */
   locationMethod: 'getLocation',
+
+  /**
+   * بارکدخوان فعلاً از دوربین WebView + BarcodeDetector استفاده می‌کند
+   * (اجازه از openCamera / onPermissionRequest).
+   */
+  barcodeNote: 'webview-barcode-detector',
 }

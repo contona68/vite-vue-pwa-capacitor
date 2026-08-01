@@ -18,7 +18,7 @@
               <input
                 type="checkbox"
                 :checked="draftFeatures[item.key]"
-                :disabled="saving || (item.key === 'location' && locationBusy)"
+                :disabled="saving || (item.key === 'location' && locationBusy) || (item.key === 'barcode' && barcodeBusy)"
                 @change="onFeatureToggle(item.key, $event.target.checked)"
               />
               <span class="slider" />
@@ -166,6 +166,65 @@
 
           <p v-if="locationError" class="error" role="alert">{{ locationError }}</p>
         </section>
+
+        <section v-if="draftFeatures.barcode" class="camera-panel" aria-labelledby="barcode-panel-title">
+          <div class="camera-panel-head">
+            <h2 id="barcode-panel-title">بارکدخوان</h2>
+            <span class="camera-provider">منبع: {{ barcodeProviderLabel }}</span>
+          </div>
+          <p class="camera-hint">
+            پیش‌نمایش زنده دوربین را نشان می‌دهد و بارکدهای تشخیص‌داده‌شده را ثبت می‌کند.
+          </p>
+
+          <div class="camera-media-row">
+            <div class="camera-box">
+              <span class="camera-box-label">اسکنر</span>
+              <div class="camera-preview-wrap">
+                <video
+                  ref="barcodeVideoRef"
+                  class="camera-preview"
+                  autoplay
+                  playsinline
+                  muted
+                  :class="{ 'is-active': barcodeReady }"
+                />
+                <p v-if="!barcodeReady" class="camera-placeholder">پیش‌نمایش بارکدخوان</p>
+              </div>
+            </div>
+
+            <div class="camera-box">
+              <span class="camera-box-label">بارکد خوانده‌شده</span>
+              <div class="camera-preview-wrap captured-wrap barcode-result-wrap">
+                <div v-if="scannedBarcode" class="barcode-result" role="status">
+                  <strong>{{ scannedBarcode.rawValue }}</strong>
+                  <span>{{ scannedBarcode.format }}</span>
+                </div>
+                <p v-else class="camera-placeholder">هنوز بارکدی خوانده نشده</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="camera-actions">
+            <button
+              type="button"
+              class="btn ghost"
+              :disabled="barcodeBusy"
+              @click="onOpenOrResetBarcode"
+            >
+              {{ barcodeReady ? 'ریست بارکدخوان' : 'شروع اسکن' }}
+            </button>
+            <button
+              type="button"
+              class="btn primary"
+              :disabled="barcodeBusy || !barcodeReady"
+              @click="shutdownBarcode"
+            >
+              توقف اسکن
+            </button>
+          </div>
+
+          <p v-if="barcodeError" class="error" role="alert">{{ barcodeError }}</p>
+        </section>
       </form>
     </section>
   </main>
@@ -198,6 +257,13 @@ import {
   getLocationProviderLabel,
   isLocationSupported,
 } from '@/services/location.service'
+import {
+  getBarcodeProviderLabel,
+  resetBarcodeScan,
+  startBarcodeScan,
+  stopBarcodeScan,
+} from '@/services/barcode.service'
+import { isNativePlatform } from '@/platform/env'
 
 const featureItems = [
   {
@@ -220,6 +286,11 @@ const featureItems = [
     title: 'موقعیت مکانی',
     description: 'نمایش مختصات فعلی پس از دریافت اجازهٔ لوکیشن.',
   },
+  {
+    key: 'barcode',
+    title: 'بارکدخوان',
+    description: 'اسکن بارکد با دوربین دستگاه (فعلاً فقط در اپ native).',
+  },
 ]
 
 const draftFeatures = reactive({})
@@ -241,6 +312,13 @@ const locationBusy = ref(false)
 const locationError = ref('')
 const locationInfo = ref(null)
 
+const barcodeVideoRef = ref(null)
+const barcodeReady = ref(false)
+const barcodeBusy = ref(false)
+const barcodeError = ref('')
+/** @type {import('vue').Ref<{ rawValue: string, format: string } | null>} */
+const scannedBarcode = ref(null)
+
 const sourceFeatures = computed(() => appConfig.value.features)
 const canShowAppLockToggle = computed(() => isFeatureEnabled('appLock'))
 const cameraProviderLabel = computed(() =>
@@ -248,6 +326,9 @@ const cameraProviderLabel = computed(() =>
 )
 const locationProviderLabel = computed(() =>
   getLocationProviderLabel() === 'native' ? 'دستگاه (native)' : 'وب (Geolocation)',
+)
+const barcodeProviderLabel = computed(() =>
+  getBarcodeProviderLabel() === 'native' ? 'دستگاه (native)' : 'وب',
 )
 
 function syncDraftFromConfig() {
@@ -271,6 +352,18 @@ function onFeatureToggle(key, checked) {
     } else {
       clearLocation()
     }
+  }
+  if (key === 'barcode') {
+    if (!checked) {
+      shutdownBarcode()
+      return
+    }
+    if (!isNativePlatform()) {
+      window.alert('بارکدخوان فعلاً در نسخهٔ وب در دسترس نیست.')
+      draftFeatures.barcode = false
+      return
+    }
+    nextTick(() => onOpenOrResetBarcode())
   }
 }
 
@@ -365,6 +458,52 @@ async function refreshLocation() {
   }
 }
 
+async function shutdownBarcode() {
+  try {
+    await stopBarcodeScan({ videoElement: barcodeVideoRef.value || undefined })
+  } catch (_) {
+    // ignore
+  }
+  barcodeReady.value = false
+  barcodeBusy.value = false
+  barcodeError.value = ''
+}
+
+async function onOpenOrResetBarcode() {
+  if (!isNativePlatform()) {
+    window.alert('بارکدخوان فعلاً در نسخهٔ وب در دسترس نیست.')
+    draftFeatures.barcode = false
+    return
+  }
+
+  barcodeError.value = ''
+  barcodeBusy.value = true
+  try {
+    await nextTick()
+    const options = {
+      videoElement: barcodeVideoRef.value || undefined,
+      onDetected: (result) => {
+        if (!result?.rawValue) return
+        scannedBarcode.value = {
+          rawValue: result.rawValue,
+          format: result.format || 'unknown',
+        }
+      },
+    }
+    if (barcodeReady.value) {
+      await resetBarcodeScan(options)
+    } else {
+      await startBarcodeScan(options)
+    }
+    barcodeReady.value = true
+  } catch (error) {
+    barcodeReady.value = false
+    barcodeError.value = error?.message || 'شروع بارکدخوان ناموفق بود.'
+  } finally {
+    barcodeBusy.value = false
+  }
+}
+
 async function onSave() {
   errorMessage.value = ''
   successMessage.value = ''
@@ -395,6 +534,9 @@ async function onSave() {
     if (!draftFeatures.location) {
       clearLocation()
     }
+    if (!draftFeatures.barcode) {
+      await shutdownBarcode()
+    }
 
     dirty.value = false
     successMessage.value = 'تنظیمات ذخیره شد.'
@@ -414,6 +556,8 @@ async function onReset() {
     disableAppLock()
     await shutdownCamera()
     clearLocation()
+    await shutdownBarcode()
+    scannedBarcode.value = null
     syncDraftFromConfig()
     successMessage.value = 'تنظیمات به حالت پیش‌فرض برگشت.'
   } catch (error) {
@@ -425,6 +569,9 @@ async function onReset() {
 
 onMounted(() => {
   syncDraftFromConfig()
+  if (draftFeatures.barcode && !isNativePlatform()) {
+    draftFeatures.barcode = false
+  }
   if (draftFeatures.location) {
     refreshLocation()
   }
@@ -433,6 +580,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   shutdownCamera()
   clearLocation()
+  shutdownBarcode()
 })
 
 watch(sourceFeatures, () => {
@@ -637,6 +785,31 @@ h1 {
 
 .captured-wrap {
   background: #f1f5f9;
+}
+
+.barcode-result-wrap {
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+}
+
+.barcode-result {
+  display: grid;
+  gap: 0.35rem;
+  text-align: center;
+  word-break: break-all;
+}
+
+.barcode-result strong {
+  color: #0f172a;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.barcode-result span {
+  color: #64748b;
+  font-size: 0.72rem;
+  text-transform: uppercase;
 }
 
 .captured-photo {

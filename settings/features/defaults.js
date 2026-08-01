@@ -10,4 +10,6 @@ export const featuresDefaults = {
   camera: false,
   /** نمایش موقعیت مکانی در تنظیمات */
   location: false,
+  /** بارکدخوان (فعلاً فقط native) */
+  barcode: false,
 }

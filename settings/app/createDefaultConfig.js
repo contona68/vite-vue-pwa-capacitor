@@ -21,6 +21,7 @@ export function createDefaultAppConfig() {
       navigationProvider: webPlatformPolicy.navigation.provider,
       cameraProvider: webPlatformPolicy.camera.provider,
       locationProvider: webPlatformPolicy.location.provider,
+      barcodeProvider: webPlatformPolicy.barcode.provider,
       pwa: { ...webPlatformPolicy.pwa },
     },
   }

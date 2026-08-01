@@ -25,6 +25,7 @@ export async function initPlatformRuntime() {
     navigation: activePolicy.navigation,
     camera: activePolicy.camera,
     location: activePolicy.location,
+    barcode: activePolicy.barcode,
     pwa: activePolicy.pwa,
   })
 
@@ -81,6 +82,7 @@ export function applyPlatformPolicyToConfig(config) {
       navigationProvider: policy.navigation?.provider,
       cameraProvider: policy.camera?.provider,
       locationProvider: policy.location?.provider,
+      barcodeProvider: policy.barcode?.provider,
       pwa: { ...policy.pwa },
     },
   }

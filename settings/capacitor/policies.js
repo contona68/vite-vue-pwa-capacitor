@@ -27,6 +27,7 @@
  * @property {{ provider: CapabilityProvider, showWebBackButton: boolean }} navigation
  * @property {{ provider: CapabilityProvider }} camera
  * @property {{ provider: CapabilityProvider }} location
+ * @property {{ provider: CapabilityProvider }} barcode
  */
 
 /** @type {PlatformPolicy} */
@@ -49,6 +50,8 @@ export const webPlatformPolicy = {
   camera: { provider: 'web' },
   /** Geolocation API */
   location: { provider: 'web' },
+  /** بارکدخوان — فعلاً در وب غیرفعال */
+  barcode: { provider: 'web' },
 }
 
 /** @type {PlatformPolicy} */
@@ -74,6 +77,8 @@ export const nativePlatformPolicy = {
   camera: { provider: 'native' },
   /** ViewAppNative.getLocation یا Geolocation داخل WebView */
   location: { provider: 'native' },
+  /** بارکدخوان زنده داخل WebView (BarcodeDetector + دوربین) */
+  barcode: { provider: 'native' },
 }
 
 /**
@@ -92,5 +97,6 @@ export function resolvePlatformPolicy(isNative) {
     navigation: { ...policy.navigation },
     camera: { ...policy.camera },
     location: { ...policy.location },
+    barcode: { ...policy.barcode },
   }
 }
