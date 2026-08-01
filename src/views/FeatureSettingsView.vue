@@ -469,6 +469,15 @@ async function shutdownBarcode() {
   barcodeError.value = ''
 }
 
+async function waitForBarcodeVideo(maxAttempts = 12) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    await nextTick()
+    if (barcodeVideoRef.value) return barcodeVideoRef.value
+    await new Promise((resolve) => setTimeout(resolve, 40))
+  }
+  return null
+}
+
 async function onOpenOrResetBarcode() {
   if (!isNativePlatform()) {
     window.alert('بارکدخوان فعلاً در نسخهٔ وب در دسترس نیست.')
@@ -479,9 +488,13 @@ async function onOpenOrResetBarcode() {
   barcodeError.value = ''
   barcodeBusy.value = true
   try {
-    await nextTick()
+    const videoElement = await waitForBarcodeVideo()
+    if (!videoElement) {
+      throw new Error('پیش‌نمایش بارکدخوان هنوز آماده نیست. دوباره تلاش کنید.')
+    }
+
     const options = {
-      videoElement: barcodeVideoRef.value || undefined,
+      videoElement,
       onDetected: (result) => {
         if (!result?.rawValue) return
         scannedBarcode.value = {

@@ -1,7 +1,7 @@
 /**
  * Barcode — native (ViewApp WebView)
  *
- * پیش‌نمایش زنده با getUserMedia + تشخیص با BarcodeDetector.
+ * بدون لایبرری خارجی: getUserMedia + BarcodeDetector API.
  * اجازهٔ دوربین از shell (openCamera / onPermissionRequest) گرفته می‌شود.
  */
 
@@ -16,8 +16,12 @@ let detector = null
 let detectTimer = null
 /** @type {HTMLVideoElement | null} */
 let boundVideo = null
+/** @type {HTMLCanvasElement | null} */
+let detectCanvas = null
 /** @type {((result: { rawValue: string, format: string }) => void) | null} */
 let onDetectedCallback = null
+/** @type {string} */
+let lastEmittedValue = ''
 let scanning = false
 
 function getNativeApi() {
@@ -33,7 +37,7 @@ function hasBarcodeDetector() {
 }
 
 export async function isBarcodeSupported() {
-  return hasBarcodeDetector() || Boolean(navigator?.mediaDevices?.getUserMedia)
+  return Boolean(navigator?.mediaDevices?.getUserMedia)
 }
 
 export function getBarcodeProviderLabel() {
@@ -62,7 +66,9 @@ function stopTracks() {
 async function ensureDetector() {
   if (detector) return detector
   if (!hasBarcodeDetector()) {
-    throw new Error('این دستگاه از تشخیص بارکد پشتیبانی نمی‌کند.')
+    throw new Error(
+      'BarcodeDetector در این WebView فعال نیست. WebView یا Google Play Services را به‌روز کنید.',
+    )
   }
 
   try {
@@ -83,18 +89,39 @@ async function warmUpNativeCameraPermission() {
   }
 }
 
+function grabVideoFrame(video) {
+  const width = video.videoWidth
+  const height = video.videoHeight
+  if (!width || !height) return null
+
+  if (!detectCanvas) {
+    detectCanvas = document.createElement('canvas')
+  }
+  detectCanvas.width = width
+  detectCanvas.height = height
+  const ctx = detectCanvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return null
+  ctx.drawImage(video, 0, 0, width, height)
+  return detectCanvas
+}
+
 async function runDetectOnce() {
   if (!scanning || !boundVideo || !detector) return
 
   try {
     if (boundVideo.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-      const codes = await detector.detect(boundVideo)
-      if (codes?.length && onDetectedCallback) {
-        const first = codes[0]
-        onDetectedCallback({
-          rawValue: String(first.rawValue || ''),
-          format: String(first.format || 'unknown'),
-        })
+      const frame = grabVideoFrame(boundVideo) || boundVideo
+      const codes = await detector.detect(frame)
+      const first = codes?.find((code) => code?.rawValue)
+      if (first && onDetectedCallback) {
+        const rawValue = String(first.rawValue)
+        if (rawValue && rawValue !== lastEmittedValue) {
+          lastEmittedValue = rawValue
+          onDetectedCallback({
+            rawValue,
+            format: String(first.format || 'unknown'),
+          })
+        }
       }
     }
   } catch (error) {
@@ -141,8 +168,10 @@ export async function startBarcodeScan(options = {}) {
 
   boundVideo = videoElement
   onDetectedCallback = typeof onDetected === 'function' ? onDetected : null
+  lastEmittedValue = ''
   videoElement.srcObject = activeStream
   videoElement.muted = true
+  videoElement.setAttribute('playsinline', 'true')
   videoElement.playsInline = true
   await videoElement.play().catch(() => {})
 
@@ -160,6 +189,8 @@ export async function stopBarcodeScan(options = {}) {
   stopDetectLoop()
   onDetectedCallback = null
   detector = null
+  lastEmittedValue = ''
+  detectCanvas = null
 
   const api = getNativeApi()
   if (typeof api?.closeCamera === 'function') {
