@@ -21,15 +21,15 @@ export const viewAppBridge = {
   connectivityApi: 'ViewAppConnectivity',
 
   /**
-   * اختیاری — native فعلی viewapp:back / ViewAppNav ندارد؛
-   * بک سخت‌افزاری معمولاً با WebView.goBack() انجام می‌شود.
+   * بک سخت‌افزاری: shell رویداد viewapp:back می‌فرستد
+   * (یا ViewAppNav.back را صدا می‌زند اگر expose شده باشد).
    */
   navigationApi: 'ViewAppNav',
   backEvent: 'viewapp:back',
 
   /**
-   * اختیاری — اگر shell متدهای دوربین را روی ViewAppNative بگذارد:
-   * openCamera / closeCamera / takePicture
+   * دوربین سیستم روی ViewAppNative:
+   * openCamera / closeCamera / takePicture → { dataUrl }
    */
   cameraMethods: {
     open: 'openCamera',

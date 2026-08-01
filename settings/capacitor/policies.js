@@ -64,8 +64,7 @@ export const nativePlatformPolicy = {
   /** وضعیت شبکه از ViewApp می‌آید؛ UI آفلاین را خود وب نشان می‌دهد */
   connectivity: { provider: 'native', showWebUi: true },
   /**
-   * بک داخل UI وب؛ بک سخت‌افزاری فعلاً WebView.goBack است
-   * (viewapp:back اختیاری — اگر native بعداً بفرستد گوش داده می‌شود)
+   * بک داخل UI وب؛ بک سخت‌افزاری از shell با viewapp:back / ViewAppNav می‌آید.
    */
   navigation: { provider: 'native', showWebBackButton: true },
   /** ViewAppNative / Capacitor Camera / در صورت امکان WebView stream */
