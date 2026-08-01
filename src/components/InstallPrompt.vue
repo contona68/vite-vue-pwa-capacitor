@@ -397,13 +397,14 @@ onUnmounted(() => {
 .install-banner {
   position: fixed;
   z-index: 10040;
-  inset-inline: 0.75rem;
-  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
-  left: 0;
-  right: 0;
-  width: calc(100% - 1.5rem);
-  max-width: min(36rem, calc(100vw - 1.5rem));
-  margin-inline: auto;
+  inset-inline: 24px;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  left: 24px;
+  right: 24px;
+  width: auto;
+  max-width: none;
+  margin-inline: 0;
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;

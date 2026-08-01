@@ -52,9 +52,15 @@ function onDismiss() {
 .update-banner {
   position: fixed;
   z-index: 10050;
-  inset-inline: 0.75rem;
-  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  inset-inline: 24px;
+  top: max(24px, env(safe-area-inset-top, 0px));
   bottom: auto;
+  left: 24px;
+  right: 24px;
+  width: auto;
+  max-width: none;
+  margin-inline: 0;
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -65,11 +71,6 @@ function onDismiss() {
   color: #0f172a;
   border: 1px solid #fde68a;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
-  max-width: min(36rem, calc(100vw - 1.5rem));
-  margin-inline: auto;
-  left: 0;
-  right: 0;
-  width: calc(100% - 1.5rem);
   pointer-events: auto;
 }
 
