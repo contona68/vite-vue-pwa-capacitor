@@ -41,20 +41,3 @@ export function getInstallSurface() {
   if (isIosDevice()) return 'ios'
   return 'desktop'
 }
-
-/**
- * آیا این مرورگر معمولاً رویداد beforeinstallprompt می‌دهد؟
- * روی Chrome/Edge دسکتاپ و اندروید نباید راهنمای دستی «منوی مرورگر» نشان دهیم؛
- * باید منتظر بنر native بمانیم.
- */
-export function browserLikelySupportsBeforeInstallPrompt() {
-  const ua = window.navigator.userAgent || ''
-  if (/Firefox|FxiOS/i.test(ua)) return false
-  if (/iPhone|iPad|iPod/i.test(ua)) return false
-  // Safari دسکتاپ (بدون Chrome/Chromium/Edg)
-  if (/Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|SamsungBrowser/i.test(ua)) {
-    return false
-  }
-  // Chromium: Chrome / Edge / Opera / Samsung Internet / Android WebView کرومیوم
-  return /Chrome|Chromium|Edg|OPR|SamsungBrowser|Android/i.test(ua)
-}

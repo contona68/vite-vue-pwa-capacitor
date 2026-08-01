@@ -10,7 +10,7 @@
       >
         <img class="app-icon" :src="appIcon" alt="" width="48" height="48" />
 
-        <!-- راهنمای iOS: فقط وقتی surface === 'ios' و شرط‌های نمایش برقرارند -->
+        <!-- فقط iOS: Share / Add to Home Screen (پلتفرم BIP ندارد) -->
         <template v-if="isIosGuide">
           <div class="text">
             <strong :id="bannerTitleId">{{ pwaUi.iosGuideTitle }}</strong>
@@ -75,31 +75,7 @@
           <div class="ios-pointer" aria-hidden="true" />
         </template>
 
-        <!-- راهنمای دستی دسکتاپ (بدون BIP) — هرگز ظاهر iOS ندارد -->
-        <template v-else-if="isDesktopGuide">
-          <div class="text">
-            <strong :id="bannerTitleId">{{ pwaUi.manualGuideTitle }}</strong>
-            <p>{{ pwaUi.manualGuideIntro }}</p>
-
-            <ol class="guide-steps" aria-label="مراحل نصب">
-              <li>
-                <span class="step-badge" aria-hidden="true">1</span>
-                <span>از منوی مرورگر گزینه <b>Install app</b> یا <b>نصب برنامه</b> را پیدا کنید</span>
-              </li>
-              <li>
-                <span class="step-badge" aria-hidden="true">2</span>
-                <span>نصب را تأیید کنید تا میانبر روی دستگاه ساخته شود</span>
-              </li>
-            </ol>
-          </div>
-
-          <div class="actions">
-            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.guideDismiss }}</button>
-            <button type="button" class="btn primary" @click="dismiss">{{ pwaUi.guideConfirm }}</button>
-          </div>
-        </template>
-
-        <!-- بنر native: اندروید / کروم دسکتاپ با beforeinstallprompt -->
+        <!-- بنر native فقط وقتی مرورگر beforeinstallprompt داده -->
         <template v-else>
           <div class="text">
             <strong id="install-title">{{ pwaUi.installTitle }}</strong>
@@ -119,10 +95,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
-  browserLikelySupportsBeforeInstallPrompt,
   consumeEarlyDeferredPrompt,
   getInstallSurface,
-  hasInstalledFlag,
   incrementDismissLoadCount,
   isIosSafari,
   isPwaAlreadyInstalled,
@@ -134,31 +108,22 @@ import {
 import { APP_ICON_192 } from '@/utils/publicUrl'
 import { appConfig } from '@/services/appConfig.service'
 import { needRefresh } from '@/pwa/updateState'
-import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
-
-/** فقط دسکتاپ بدون BIP */
-const MANUAL_GUIDE_DELAY_MS = pwaInstallPolicy.manualGuideDelayMs
 
 const appIcon = APP_ICON_192
 const visible = ref(false)
 const isGuide = ref(false)
 
-/** 'android' | 'ios' | 'desktop' — یک‌بار در setup، متنافی‌الاجمع */
+/** 'android' | 'ios' | 'desktop' */
 const surface = getInstallSurface()
 const onIosSafari = isIosSafari()
 
 const pwaUi = computed(() => appConfig.value.pwaUi)
-/** بنر Share / Add to Home Screen فقط روی iOS */
 const isIosGuide = computed(() => isGuide.value && surface === 'ios')
-/** راهنمای منوی مرورگر فقط روی دسکتاپ */
-const isDesktopGuide = computed(() => isGuide.value && surface === 'desktop')
 const needsSafariHint = computed(() => isIosGuide.value && !onIosSafari)
 const bannerTitleId = computed(() => (isGuide.value ? 'guide-install-title' : 'install-title'))
 
 let deferredPrompt = null
 let alreadyInstalled = false
-let nativeInstallReady = false
-let manualGuideTimer = null
 let listenersBound = false
 
 const standaloneMedia = window.matchMedia('(display-mode: standalone)')
@@ -174,14 +139,12 @@ function hideBanner() {
 }
 
 /**
- * همیشه اول وضعیت نصب را بگیر؛ اگر نصب است بنر را نشان نده.
+ * منبع حقیقت نصب = API پلتفرم (standalone / getInstalledRelatedApps)
  */
 async function refreshInstalledState() {
   alreadyInstalled = await isPwaAlreadyInstalled()
   if (alreadyInstalled) {
     deferredPrompt = null
-    nativeInstallReady = false
-    clearManualGuideTimer()
     hideBanner()
   }
   return alreadyInstalled
@@ -197,17 +160,9 @@ async function showNativeInstallBanner() {
   visible.value = true
 }
 
-/**
- * راهنمای دستی:
- * - iOS: همیشه (Share / Add to Home Screen)
- * - دسکتاپ: فقط مرورگرهایی که BIP نمی‌دهند (مثلاً Firefox/Safari)
- * - اندروید / کروم دسکتاپ: هرگز — فقط بنر native با beforeinstallprompt
- */
-async function showManualGuideBanner() {
-  if (surface === 'android') return
-  if (surface === 'desktop' && browserLikelySupportsBeforeInstallPrompt()) return
-  if (surface !== 'ios' && surface !== 'desktop') return
-  if (nativeInstallReady || deferredPrompt) return
+/** راهنمای iOS فقط وقتی داخل اپ نیستیم */
+async function showIosGuideBanner() {
+  if (surface !== 'ios') return
   if (await refreshInstalledState()) return
   if (!canShowBanner()) {
     hideBanner()
@@ -217,37 +172,19 @@ async function showManualGuideBanner() {
   visible.value = true
 }
 
-function clearManualGuideTimer() {
-  if (manualGuideTimer == null) return
-  window.clearTimeout(manualGuideTimer)
-  manualGuideTimer = null
-}
-
-function scheduleDesktopManualGuideFallback() {
-  if (surface !== 'desktop') return
-  // کروم/اج: منتظر BIP بمان؛ راهنمای «منوی مرورگر» را زود نشان نده
-  if (browserLikelySupportsBeforeInstallPrompt()) return
-  clearManualGuideTimer()
-  manualGuideTimer = window.setTimeout(() => {
-    manualGuideTimer = null
-    if (nativeInstallReady || deferredPrompt || visible.value) return
-    showManualGuideBanner()
-  }, MANUAL_GUIDE_DELAY_MS)
-}
-
+/**
+ * قبلinstallprompt = خود مرورگر می‌گوید «هنوز نصب نیست و قابل نصب است».
+ * این قوی‌ترین سیگنال پلتفرم است؛ به storage وابسته نیستیم.
+ */
 function applyDeferredPrompt(event) {
   if (!event) return false
-  // اگر از قبل نصب است، BIP را نادیده بگیر
-  if (alreadyInstalled || isStandaloneMode() || hasInstalledFlag()) {
+  if (isStandaloneMode()) {
     alreadyInstalled = true
-    markPwaInstalled()
     deferredPrompt = null
     hideBanner()
     return false
   }
   deferredPrompt = event
-  nativeInstallReady = true
-  clearManualGuideTimer()
   if (!canShowBanner()) {
     hideBanner()
     return true
@@ -266,14 +203,12 @@ function onAppInstalled() {
   alreadyInstalled = true
   markPwaInstalled()
   deferredPrompt = null
-  clearManualGuideTimer()
   hideBanner()
 }
 
 function onDisplayModeChange() {
   if (isStandaloneMode()) {
     alreadyInstalled = true
-    markPwaInstalled()
     hideBanner()
   }
 }
@@ -286,7 +221,6 @@ async function onVisibilityOrPageshow() {
 function dismiss() {
   hideBanner()
   setLoadsSinceDismiss(0)
-  clearManualGuideTimer()
 }
 
 async function install() {
@@ -312,12 +246,7 @@ async function restoreBannerAfterUpdate() {
     return
   }
   if (surface === 'ios') {
-    await showManualGuideBanner()
-    return
-  }
-  // دسکتاپ غیرکرومیوم: راهنمای دستی؛ کروم فقط اگر BIP برگشت
-  if (surface === 'desktop' && !browserLikelySupportsBeforeInstallPrompt()) {
-    await showManualGuideBanner()
+    await showIosGuideBanner()
   }
 }
 
@@ -354,41 +283,34 @@ watch(needRefresh, (updating) => {
 onMounted(async () => {
   bindInstallListeners()
 
-  // ۱) اول: نصب هست یا نه؟
+  // ۱) API پلتفرم: نصب است؟
   if (await refreshInstalledState()) return
 
-  // ۲) BIP زودهنگام (قبل از mount) — اگر آمد، دیگر با related-apps پاکش نکن
+  // ۲) BIP = مرورگر می‌گوید قابل نصب است → بنر native
   const gotEarlyPrompt = applyDeferredPrompt(consumeEarlyDeferredPrompt())
   if (gotEarlyPrompt && deferredPrompt) {
     incrementDismissLoadCount()
-    await showNativeInstallBanner()
     return
   }
-  if (await refreshInstalledState()) return
 
   incrementDismissLoadCount()
 
-  // ۳) بنر native اگر BIP داریم
   if (deferredPrompt) {
     await showNativeInstallBanner()
     return
   }
 
-  // ۴) iOS → فقط راهنمای Share (روی غیر iOS هرگز)
+  // ۳) iOS: BIP ندارد → راهنمای Share فقط اگر standalone نیست
   if (surface === 'ios') {
-    await showManualGuideBanner()
+    await showIosGuideBanner()
     return
   }
 
-  // ۵) اندروید بدون BIP → بنر نشان نده (صبر برای BIP)
-  if (surface === 'android') return
-
-  // ۶) دسکتاپ بدون BIP → راهنمای منوی مرورگر (نه ظاهر iOS)
-  scheduleDesktopManualGuideFallback()
+  // ۴) اندروید / دسکتاپ / فایرفاکس بدون BIP → بنر نشان نده
+  // (فایرفاکس نمی‌داند کروم نصب کرده؛ بنر ساختگی گمراه‌کننده است)
 })
 
 onUnmounted(() => {
-  clearManualGuideTimer()
   unbindInstallListeners()
 })
 </script>
@@ -550,7 +472,6 @@ onUnmounted(() => {
 }
 
 .install-banner.is-ios-guide {
-  /* برای قرارگیری فلش Share نسبت به خود بنر */
   position: fixed;
 }
 
