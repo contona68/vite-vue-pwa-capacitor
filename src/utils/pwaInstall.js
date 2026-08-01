@@ -112,8 +112,9 @@ export async function hasInstalledRelatedWebApp() {
 /**
  * تشخیص نصب — اولویت برای جلوگیری از بنر غلط روی موبایل:
  * 1) standalone
- * 2) getInstalledRelatedApps
- * 3) فلگ localStorage بعد از نصب موفق (appinstalled / قبول BIP)
+ * 2) مرورگر راهنمای دستی (Firefox/Safari/iOS): فقط standalone
+ *    — فلگ localStorage معمولاً از کروم می‌آید و بنر فایرفاکس را غلط مخفی می‌کند
+ * 3) getInstalledRelatedApps + فلگ (فقط کرومیوم)
  *
  * beforeinstallprompt به‌تنهایی معیار «نصب‌نشده» نیست (گاهی بعد از نصب هم می‌آید).
  */
@@ -122,6 +123,11 @@ export async function isPwaAlreadyInstalled() {
     markPwaInstalled()
     discardEarlyDeferredPrompt()
     return true
+  }
+
+  // فایرفاکس/سافاری: بدون BIP؛ فقط وقتی داخل پوستهٔ نصب‌شده هستیم مخفی کن
+  if (browserUsesManualInstallGuide()) {
+    return false
   }
 
   if (await hasInstalledRelatedWebApp()) {

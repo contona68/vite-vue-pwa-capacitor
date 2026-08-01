@@ -45,14 +45,18 @@ export function getInstallSurface() {
 /**
  * آیا این مرورگر به‌جای beforeinstallprompt باید راهنمای نصب دستی ببیند؟
  * کروم/اج/اندروید کرومیوم → false (فقط BIP)
- * فایرفاکس / سافاری دسکتاپ / iOS → true
+ * فایرفاکس (دسکتاپ و اندروید) / سافاری دسکتاپ / iOS → true
  */
 export function browserUsesManualInstallGuide() {
   if (isIosDevice()) return true
-  if (isAndroidDevice()) return false
 
   const ua = window.navigator.userAgent || ''
-  if (/Firefox/i.test(ua)) return true
+  // قبل از چک اندروید: فایرفاکس اندروید BIP ندارد و باید راهنما ببیند
+  if (/Firefox|FxiOS/i.test(ua)) return true
+
+  // اندروید کرومیوم: فقط با beforeinstallprompt
+  if (isAndroidDevice()) return false
+
   if (/Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|SamsungBrowser/i.test(ua)) {
     return true
   }
