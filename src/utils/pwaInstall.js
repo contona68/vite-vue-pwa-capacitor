@@ -1,10 +1,23 @@
-import { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari } from '@/utils/device'
+import {
+  browserUsesManualInstallGuide,
+  getInstallSurface,
+  isAndroidDevice,
+  isIosDevice,
+  isIosSafari,
+} from '@/utils/device'
 import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 
+const INSTALLED_KEY = pwaInstallPolicy.installedStorageKey
 const DISMISS_LOADS_KEY = pwaInstallPolicy.dismissLoadsStorageKey
 const SHOW_EVERY_N_LOADS = pwaInstallPolicy.showEveryNLoads
 
-export { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari }
+export {
+  browserUsesManualInstallGuide,
+  getInstallSurface,
+  isAndroidDevice,
+  isIosDevice,
+  isIosSafari,
+}
 
 /** رویداد beforeinstallprompt که قبل از mount اپ ممکن است بیاید */
 let earlyDeferredPrompt = null
@@ -25,10 +38,13 @@ export function startEarlyBeforeInstallPromptCapture() {
 function onEarlyBeforeInstallPrompt(event) {
   event.preventDefault()
   earlyDeferredPrompt = event
+  // BIP = مرورگر می‌گوید هنوز نصب نیست / قابل نصب است
+  clearPwaInstalledFlag()
 }
 
 function onEarlyAppInstalled() {
   earlyDeferredPrompt = null
+  markPwaInstalled()
 }
 
 /** مصرف رویداد ذخیره‌شده؛ فقط یک‌بار */
@@ -40,6 +56,19 @@ export function consumeEarlyDeferredPrompt() {
 
 export function peekEarlyDeferredPrompt() {
   return earlyDeferredPrompt
+}
+
+export function markPwaInstalled() {
+  localStorage.setItem(INSTALLED_KEY, '1')
+  localStorage.removeItem(DISMISS_LOADS_KEY)
+}
+
+export function clearPwaInstalledFlag() {
+  localStorage.removeItem(INSTALLED_KEY)
+}
+
+export function hasInstalledFlag() {
+  return localStorage.getItem(INSTALLED_KEY) === '1'
 }
 
 /**
@@ -65,11 +94,11 @@ export async function hasInstalledRelatedWebApp() {
   if (!('getInstalledRelatedApps' in navigator)) return false
   try {
     const relatedApps = await navigator.getInstalledRelatedApps()
-    if (!Array.isArray(relatedApps)) return false
+    if (!Array.isArray(relatedApps) || relatedApps.length === 0) return false
     return relatedApps.some(
       (app) =>
         app?.platform === 'webapp' ||
-        (typeof app?.url === 'string' && app.url.includes('manifest')),
+        (typeof app?.url === 'string' && /manifest/i.test(app.url)),
     )
   } catch (_) {
     return false
@@ -77,19 +106,33 @@ export async function hasInstalledRelatedWebApp() {
 }
 
 /**
- * تشخیص نصب با API پلتفرم (همه مرورگرهای وب یک منطق):
- * 1) display-mode standalone
- * 2) getInstalledRelatedApps (اگر مرورگر پشتیبانی کند)
+ * تشخیص نصب:
+ * 1) standalone / home screen
+ * 2) getInstalledRelatedApps (کروم)
+ * 3) فلگ localStorage بعد از appinstalled / قبول نصب (همان مرورگر)
+ *
+ * نکته: وجود beforeinstallprompt یعنی نصب‌نشده — فلگ را پاک می‌کنیم.
  */
 export async function isPwaAlreadyInstalled() {
-  if (isStandaloneMode()) return true
-  if (await hasInstalledRelatedWebApp()) return true
-  return false
-}
+  if (isStandaloneMode()) {
+    markPwaInstalled()
+    return true
+  }
 
-/** بعد از appinstalled / قبول نصب — شمارندهٔ dismiss را ریست کن */
-export function markPwaInstalled() {
-  localStorage.removeItem(DISMISS_LOADS_KEY)
+  if (earlyDeferredPrompt) {
+    return false
+  }
+
+  if (await hasInstalledRelatedWebApp()) {
+    markPwaInstalled()
+    return true
+  }
+
+  if (hasInstalledFlag()) {
+    return true
+  }
+
+  return false
 }
 
 export function getLoadsSinceDismiss() {

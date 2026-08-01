@@ -41,3 +41,20 @@ export function getInstallSurface() {
   if (isIosDevice()) return 'ios'
   return 'desktop'
 }
+
+/**
+ * آیا این مرورگر به‌جای beforeinstallprompt باید راهنمای نصب دستی ببیند؟
+ * کروم/اج/اندروید کرومیوم → false (فقط BIP)
+ * فایرفاکس / سافاری دسکتاپ / iOS → true
+ */
+export function browserUsesManualInstallGuide() {
+  if (isIosDevice()) return true
+  if (isAndroidDevice()) return false
+
+  const ua = window.navigator.userAgent || ''
+  if (/Firefox/i.test(ua)) return true
+  if (/Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|SamsungBrowser/i.test(ua)) {
+    return true
+  }
+  return false
+}

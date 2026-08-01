@@ -18,7 +18,6 @@
             <p v-if="surface === 'ios' && !onIosSafari" class="steps-intro">{{ pwaUi.iosNeedsSafari }}</p>
             <p v-else class="steps-intro">{{ pwaUi.installStepsIntro }}</p>
 
-            <!-- مراحل iOS -->
             <ol v-if="surface === 'ios'" class="guide-steps" aria-label="مراحل نصب">
               <li>
                 <span class="step-badge" aria-hidden="true">
@@ -68,7 +67,6 @@
               </li>
             </ol>
 
-            <!-- مراحل دسکتاپ / اندروید بدون BIP -->
             <ol v-else class="guide-steps" aria-label="مراحل نصب">
               <li>
                 <span class="step-badge" aria-hidden="true">1</span>
@@ -97,13 +95,15 @@
 
 <script setup>
 /**
- * رفتار یکسان در همه مرورگرهای وب (نه Capacitor):
- * - اگر نصب نیست → همین بنر با عنوان/متن/دکمه‌های یکسان
- * - دکمه نصب: BIP باشد → دیالوگ مرورگر؛ نباشد → نمایش مراحل
- * Capacitor از بیرون با isPwaCapabilityEnabled خاموش است.
+ * قوانین سخت:
+ * 1) اگر اپ نصب است → هیچ بنر نصبی نه
+ * 2) اگر بنر آپدیت فعال است (needRefresh) → بنر نصب نه؛ بعد از اتمام آپدیت، فقط اگر نصب نیست
+ * 3) کروم/اج/اندروید → فقط بنر فشرده وقتی beforeinstallprompt آمده
+ * 4) فایرفاکس/سافاری/iOS → فقط راهنمای دستی (هرگز بنر BIP کروم را شبیه‌سازی نکن)
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
+  browserUsesManualInstallGuide,
   consumeEarlyDeferredPrompt,
   getInstallSurface,
   incrementDismissLoadCount,
@@ -127,6 +127,7 @@ const stepsVisible = ref(false)
 
 const surface = getInstallSurface()
 const onIosSafari = isIosSafari()
+const usesManualGuide = browserUsesManualInstallGuide()
 
 const pwaUi = computed(() => appConfig.value.pwaUi)
 const primaryLabel = computed(() =>
@@ -161,17 +162,33 @@ async function refreshInstalledState() {
 }
 
 /**
- * با BIP → بنر فشرده + دکمه نصب
- * بدون BIP (فایرفاکس/…) → مستقیم راهنمای نصب دستی (بنر فشرده بی‌فایده است)
+ * تصمیم نمایش:
+ * - نصب‌شده / آپدیت باز / dismiss → هیچ
+ * - BIP → بنر نصب کروم (فشرده)
+ * - مرورگر دستی → راهنمای نصب
+ * - کروم بدون BIP → هیچ (معمولاً یعنی نصب است یا هنوز آماده نیست)
  */
-async function showInstallBanner() {
+async function tryShowInstallBanner() {
   if (await refreshInstalledState()) return
   if (!canShowBanner()) {
     hideBanner()
     return
   }
-  stepsVisible.value = !deferredPrompt
-  visible.value = true
+
+  if (deferredPrompt) {
+    stepsVisible.value = false
+    visible.value = true
+    return
+  }
+
+  if (usesManualGuide) {
+    stepsVisible.value = true
+    visible.value = true
+    return
+  }
+
+  // Chromium بدون BIP: بنر نصب نشان نده (و راهنمای فایرفاکس هم هرگز)
+  hideBanner()
 }
 
 function clearShowTimer() {
@@ -180,11 +197,12 @@ function clearShowTimer() {
   showTimer = null
 }
 
-function scheduleShowBanner() {
+function scheduleManualGuideIfNeeded() {
+  if (!usesManualGuide) return
   clearShowTimer()
   showTimer = window.setTimeout(() => {
     showTimer = null
-    showInstallBanner()
+    tryShowInstallBanner()
   }, SHOW_DELAY_MS)
 }
 
@@ -192,13 +210,21 @@ function applyDeferredPrompt(event) {
   if (!event) return false
   if (isStandaloneMode()) {
     alreadyInstalled = true
+    markPwaInstalled()
     deferredPrompt = null
     hideBanner()
     return false
   }
+
   deferredPrompt = event
-  if (!canShowBanner()) return true
-  // BIP آمد → بنر یکسان را نشان بده (بدون مراحل)
+  clearShowTimer()
+
+  // اگر آپدیت باز است فقط BIP را نگه دار؛ بنر نصب را بعداً نشان بده
+  if (!canShowBanner()) {
+    hideBanner()
+    return true
+  }
+
   stepsVisible.value = false
   visible.value = true
   return true
@@ -220,6 +246,7 @@ function onAppInstalled() {
 function onDisplayModeChange() {
   if (isStandaloneMode()) {
     alreadyInstalled = true
+    markPwaInstalled()
     clearShowTimer()
     hideBanner()
   }
@@ -227,7 +254,11 @@ function onDisplayModeChange() {
 
 async function onVisibilityOrPageshow() {
   if (document.visibilityState && document.visibilityState !== 'visible') return
-  await refreshInstalledState()
+  if (await refreshInstalledState()) return
+  // فقط اگر بنر باید دیده شود و هنوز چیزی نشان نداده‌ایم / کروم BIP دیر آمده
+  if (!visible.value && canShowBanner()) {
+    await tryShowInstallBanner()
+  }
 }
 
 function dismiss() {
@@ -237,7 +268,6 @@ function dismiss() {
 }
 
 async function onPrimary() {
-  // BIP → دیالوگ نصب مرورگر
   if (deferredPrompt) {
     deferredPrompt.prompt()
     const choice = await deferredPrompt.userChoice
@@ -252,15 +282,8 @@ async function onPrimary() {
     return
   }
 
-  // راهنمای دستی از قبل باز است → متوجه شدم
+  // راهنمای دستی → متوجه شدم
   dismiss()
-}
-
-async function restoreBannerAfterUpdate() {
-  if (await refreshInstalledState()) return
-  if (canShowBanner()) {
-    await showInstallBanner()
-  }
 }
 
 function bindInstallListeners() {
@@ -285,31 +308,43 @@ function unbindInstallListeners() {
   fullscreenMedia.removeEventListener('change', onDisplayModeChange)
 }
 
-watch(needRefresh, (updating) => {
+watch(needRefresh, async (updating) => {
   if (updating) {
     hideBanner()
     return
   }
-  restoreBannerAfterUpdate()
+  // آپدیت تمام/رد شد → فقط اگر هنوز نصب نیست بنر نصب
+  await tryShowInstallBanner()
 })
 
 onMounted(async () => {
   bindInstallListeners()
 
+  // ۱) نصب از قبل؟
   if (await refreshInstalledState()) return
 
+  // ۲) BIP زودهنگام
   applyDeferredPrompt(consumeEarlyDeferredPrompt())
   incrementDismissLoadCount()
 
+  // ۳) آپدیت باز؟ نصب را نشان نده
+  if (needRefresh.value) {
+    hideBanner()
+    return
+  }
+
   if (!canShowBanner()) return
 
-  // BIP → بنر فشرده؛ بدون BIP → مستقیم راهنمای دستی
+  // ۴) کروم با BIP → بنر نصب؛ فایرفاکس → راهنما؛ کروم بدون BIP → هیچ
   if (deferredPrompt) {
     stepsVisible.value = false
     visible.value = true
     return
   }
-  scheduleShowBanner()
+
+  if (usesManualGuide) {
+    scheduleManualGuideIfNeeded()
+  }
 })
 
 onUnmounted(() => {
