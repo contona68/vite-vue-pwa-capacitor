@@ -8,6 +8,8 @@ export const pwaInstallPolicy = {
   dismissLoadsStorageKey: 'pwa-install-loads-since-dismiss',
   /** بعد از dismiss، هر N بار لود دوباره بنر را نشان بده */
   showEveryNLoads: 5,
+  /** تأخیر راهنمای دستی Firefox/Safari (ms) */
+  manualGuideDelayMs: 800,
   /** فاصله چک آپدیت Service Worker (ms) */
   updateCheckIntervalMs: 5 * 60 * 1000,
 }

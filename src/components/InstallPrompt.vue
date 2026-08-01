@@ -75,6 +75,30 @@
           <div class="ios-pointer" aria-hidden="true" />
         </template>
 
+        <!-- راهنمای دستی: Firefox / Safari دسکتاپ (بدون BIP) -->
+        <template v-else-if="isDesktopGuide">
+          <div class="text">
+            <strong :id="bannerTitleId">{{ pwaUi.manualGuideTitle }}</strong>
+            <p>{{ pwaUi.manualGuideIntro }}</p>
+
+            <ol class="guide-steps" aria-label="مراحل نصب">
+              <li>
+                <span class="step-badge" aria-hidden="true">1</span>
+                <span>از منوی مرورگر گزینه <b>Install app</b> یا <b>نصب برنامه</b> را پیدا کنید</span>
+              </li>
+              <li>
+                <span class="step-badge" aria-hidden="true">2</span>
+                <span>نصب را تأیید کنید تا میانبر روی دستگاه ساخته شود</span>
+              </li>
+            </ol>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.guideDismiss }}</button>
+            <button type="button" class="btn primary" @click="dismiss">{{ pwaUi.guideConfirm }}</button>
+          </div>
+        </template>
+
         <!-- بنر native فقط وقتی مرورگر beforeinstallprompt داده -->
         <template v-else>
           <div class="text">
@@ -95,6 +119,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
+  browserNeedsManualInstallGuide,
   consumeEarlyDeferredPrompt,
   getInstallSurface,
   incrementDismissLoadCount,
@@ -108,6 +133,9 @@ import {
 import { APP_ICON_192 } from '@/utils/publicUrl'
 import { appConfig } from '@/services/appConfig.service'
 import { needRefresh } from '@/pwa/updateState'
+import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
+
+const MANUAL_GUIDE_DELAY_MS = pwaInstallPolicy.manualGuideDelayMs
 
 const appIcon = APP_ICON_192
 const visible = ref(false)
@@ -116,14 +144,17 @@ const isGuide = ref(false)
 /** 'android' | 'ios' | 'desktop' */
 const surface = getInstallSurface()
 const onIosSafari = isIosSafari()
+const needsManualGuide = browserNeedsManualInstallGuide()
 
 const pwaUi = computed(() => appConfig.value.pwaUi)
 const isIosGuide = computed(() => isGuide.value && surface === 'ios')
+const isDesktopGuide = computed(() => isGuide.value && surface === 'desktop' && needsManualGuide)
 const needsSafariHint = computed(() => isIosGuide.value && !onIosSafari)
 const bannerTitleId = computed(() => (isGuide.value ? 'guide-install-title' : 'install-title'))
 
 let deferredPrompt = null
 let alreadyInstalled = false
+let manualGuideTimer = null
 let listenersBound = false
 
 const standaloneMedia = window.matchMedia('(display-mode: standalone)')
@@ -172,9 +203,37 @@ async function showIosGuideBanner() {
   visible.value = true
 }
 
+/** راهنمای Firefox / Safari — فقط مرورگر بدون BIP */
+async function showDesktopManualGuideBanner() {
+  if (surface !== 'desktop' || !needsManualGuide) return
+  if (deferredPrompt) return
+  if (await refreshInstalledState()) return
+  if (!canShowBanner()) {
+    hideBanner()
+    return
+  }
+  isGuide.value = true
+  visible.value = true
+}
+
+function clearManualGuideTimer() {
+  if (manualGuideTimer == null) return
+  window.clearTimeout(manualGuideTimer)
+  manualGuideTimer = null
+}
+
+function scheduleDesktopManualGuide() {
+  if (surface !== 'desktop' || !needsManualGuide) return
+  clearManualGuideTimer()
+  manualGuideTimer = window.setTimeout(() => {
+    manualGuideTimer = null
+    if (deferredPrompt || visible.value) return
+    showDesktopManualGuideBanner()
+  }, MANUAL_GUIDE_DELAY_MS)
+}
+
 /**
  * قبلinstallprompt = خود مرورگر می‌گوید «هنوز نصب نیست و قابل نصب است».
- * این قوی‌ترین سیگنال پلتفرم است؛ به storage وابسته نیستیم.
  */
 function applyDeferredPrompt(event) {
   if (!event) return false
@@ -185,6 +244,7 @@ function applyDeferredPrompt(event) {
     return false
   }
   deferredPrompt = event
+  clearManualGuideTimer()
   if (!canShowBanner()) {
     hideBanner()
     return true
@@ -203,12 +263,14 @@ function onAppInstalled() {
   alreadyInstalled = true
   markPwaInstalled()
   deferredPrompt = null
+  clearManualGuideTimer()
   hideBanner()
 }
 
 function onDisplayModeChange() {
   if (isStandaloneMode()) {
     alreadyInstalled = true
+    clearManualGuideTimer()
     hideBanner()
   }
 }
@@ -221,6 +283,7 @@ async function onVisibilityOrPageshow() {
 function dismiss() {
   hideBanner()
   setLoadsSinceDismiss(0)
+  clearManualGuideTimer()
 }
 
 async function install() {
@@ -247,6 +310,10 @@ async function restoreBannerAfterUpdate() {
   }
   if (surface === 'ios') {
     await showIosGuideBanner()
+    return
+  }
+  if (needsManualGuide) {
+    await showDesktopManualGuideBanner()
   }
 }
 
@@ -300,17 +367,23 @@ onMounted(async () => {
     return
   }
 
-  // ۳) iOS: BIP ندارد → راهنمای Share فقط اگر standalone نیست
+  // ۳) iOS: BIP ندارد → راهنمای Share
   if (surface === 'ios') {
     await showIosGuideBanner()
     return
   }
 
-  // ۴) اندروید / دسکتاپ / فایرفاکس بدون BIP → بنر نشان نده
-  // (فایرفاکس نمی‌داند کروم نصب کرده؛ بنر ساختگی گمراه‌کننده است)
+  // ۴) Firefox / Safari دسکتاپ: راهنمای نصب از منوی مرورگر
+  if (needsManualGuide) {
+    scheduleDesktopManualGuide()
+    return
+  }
+
+  // ۵) کروم/اج/اندروید بدون BIP فعلاً → صبر برای BIP (بنر دستی نه)
 })
 
 onUnmounted(() => {
+  clearManualGuideTimer()
   unbindInstallListeners()
 })
 </script>

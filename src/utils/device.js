@@ -41,3 +41,18 @@ export function getInstallSurface() {
   if (isIosDevice()) return 'ios'
   return 'desktop'
 }
+
+/**
+ * مرورگرهایی که beforeinstallprompt ندارند (مثل Firefox / Safari دسکتاپ)
+ * و باید راهنمای نصب دستی ببینند — نه کروم/اج/اندروید.
+ */
+export function browserNeedsManualInstallGuide() {
+  const ua = window.navigator.userAgent || ''
+  if (isIosDevice() || isAndroidDevice()) return false
+  if (/Firefox/i.test(ua)) return true
+  // Safari دسکتاپ (بدون Chrome/Chromium/Edg)
+  if (/Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|SamsungBrowser/i.test(ua)) {
+    return true
+  }
+  return false
+}
