@@ -8,4 +8,6 @@ export const featuresDefaults = {
   otp: true,
   /** استفاده از دوربین در تنظیمات */
   camera: false,
+  /** نمایش موقعیت مکانی در تنظیمات */
+  location: false,
 }

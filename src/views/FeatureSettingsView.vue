@@ -18,7 +18,7 @@
               <input
                 type="checkbox"
                 :checked="draftFeatures[item.key]"
-                :disabled="saving"
+                :disabled="saving || (item.key === 'location' && locationBusy)"
                 @change="onFeatureToggle(item.key, $event.target.checked)"
               />
               <span class="slider" />
@@ -117,6 +117,50 @@
 
           <p v-if="cameraError" class="error" role="alert">{{ cameraError }}</p>
         </section>
+
+        <section v-if="draftFeatures.location" class="location-panel" aria-labelledby="location-panel-title">
+          <div class="camera-panel-head">
+            <h2 id="location-panel-title">موقعیت مکانی</h2>
+            <span class="camera-provider">منبع: {{ locationProviderLabel }}</span>
+          </div>
+          <p class="camera-hint">
+            با روشن کردن سوییچ، اجازه گرفته می‌شود و مختصات فعلی نشان داده می‌شود.
+          </p>
+
+          <div v-if="locationInfo" class="location-card" role="status">
+            <div class="location-row">
+              <span>عرض جغرافیایی</span>
+              <strong>{{ formatCoordinate(locationInfo.latitude) }}</strong>
+            </div>
+            <div class="location-row">
+              <span>طول جغرافیایی</span>
+              <strong>{{ formatCoordinate(locationInfo.longitude) }}</strong>
+            </div>
+            <div class="location-row">
+              <span>دقت</span>
+              <strong>{{ formatAccuracy(locationInfo.accuracy) }}</strong>
+            </div>
+            <div v-if="locationInfo.altitude != null" class="location-row">
+              <span>ارتفاع</span>
+              <strong>{{ formatAccuracy(locationInfo.altitude) }}</strong>
+            </div>
+          </div>
+          <p v-else-if="locationBusy" class="camera-hint">در حال دریافت موقعیت...</p>
+          <p v-else class="camera-hint">هنوز موقعیتی دریافت نشده است.</p>
+
+          <div class="camera-actions">
+            <button
+              type="button"
+              class="btn ghost"
+              :disabled="locationBusy"
+              @click="refreshLocation"
+            >
+              {{ locationBusy ? 'در حال دریافت...' : 'بروزرسانی موقعیت' }}
+            </button>
+          </div>
+
+          <p v-if="locationError" class="error" role="alert">{{ locationError }}</p>
+        </section>
       </form>
     </section>
   </main>
@@ -144,6 +188,11 @@ import {
   openCamera,
   resetCamera,
 } from '@/services/camera.service'
+import {
+  getCurrentPosition,
+  getLocationProviderLabel,
+  isLocationSupported,
+} from '@/services/location.service'
 
 const featureItems = [
   {
@@ -160,6 +209,11 @@ const featureItems = [
     key: 'camera',
     title: 'استفاده از دوربین',
     description: 'امکان باز کردن دوربین و گرفتن عکس در همین صفحه.',
+  },
+  {
+    key: 'location',
+    title: 'موقعیت مکانی',
+    description: 'نمایش مختصات فعلی پس از دریافت اجازهٔ لوکیشن.',
   },
 ]
 
@@ -178,10 +232,17 @@ const capturedPhoto = ref('')
 /** @type {import('vue').Ref<'stream' | 'native-prompt' | 'native-bridge' | ''>} */
 const cameraMode = ref('')
 
+const locationBusy = ref(false)
+const locationError = ref('')
+const locationInfo = ref(null)
+
 const sourceFeatures = computed(() => appConfig.value.features)
 const canShowAppLockToggle = computed(() => isFeatureEnabled('appLock'))
 const cameraProviderLabel = computed(() =>
   getCameraProviderLabel() === 'native' ? 'دستگاه (native)' : 'وب (getUserMedia)',
+)
+const locationProviderLabel = computed(() =>
+  getLocationProviderLabel() === 'native' ? 'دستگاه (native)' : 'وب (Geolocation)',
 )
 
 function syncDraftFromConfig() {
@@ -198,6 +259,13 @@ function onFeatureToggle(key, checked) {
   successMessage.value = ''
   if (key === 'camera' && !checked) {
     shutdownCamera()
+  }
+  if (key === 'location') {
+    if (checked) {
+      refreshLocation()
+    } else {
+      clearLocation()
+    }
   }
 }
 
@@ -260,6 +328,38 @@ async function onCapturePhoto() {
   }
 }
 
+function clearLocation() {
+  locationInfo.value = null
+  locationError.value = ''
+  locationBusy.value = false
+}
+
+function formatCoordinate(value) {
+  if (value == null || Number.isNaN(Number(value))) return '—'
+  return Number(value).toFixed(6)
+}
+
+function formatAccuracy(value) {
+  if (value == null || Number.isNaN(Number(value))) return '—'
+  return `${Math.round(Number(value))} متر`
+}
+
+async function refreshLocation() {
+  locationError.value = ''
+  locationBusy.value = true
+  try {
+    if (!isLocationSupported()) {
+      throw new Error('موقعیت مکانی در این محیط پشتیبانی نمی‌شود.')
+    }
+    locationInfo.value = await getCurrentPosition()
+  } catch (error) {
+    locationInfo.value = null
+    locationError.value = error?.message || 'دریافت موقعیت مکانی ناموفق بود.'
+  } finally {
+    locationBusy.value = false
+  }
+}
+
 async function onSave() {
   errorMessage.value = ''
   successMessage.value = ''
@@ -287,6 +387,9 @@ async function onSave() {
     if (!draftFeatures.camera) {
       await shutdownCamera()
     }
+    if (!draftFeatures.location) {
+      clearLocation()
+    }
 
     dirty.value = false
     successMessage.value = 'تنظیمات ذخیره شد.'
@@ -305,6 +408,7 @@ async function onReset() {
     await resetAppConfig()
     disableAppLock()
     await shutdownCamera()
+    clearLocation()
     syncDraftFromConfig()
     successMessage.value = 'تنظیمات به حالت پیش‌فرض برگشت.'
   } catch (error) {
@@ -316,10 +420,14 @@ async function onReset() {
 
 onMounted(() => {
   syncDraftFromConfig()
+  if (draftFeatures.location) {
+    refreshLocation()
+  }
 })
 
 onBeforeUnmount(() => {
   shutdownCamera()
+  clearLocation()
 })
 
 watch(sourceFeatures, () => {
@@ -537,6 +645,43 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+}
+
+.location-panel {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border-radius: 0.7rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  margin-top: 0.35rem;
+}
+
+.location-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.55rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.location-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.location-row span {
+  color: #64748b;
+}
+
+.location-row strong {
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
 }
 
 .actions {

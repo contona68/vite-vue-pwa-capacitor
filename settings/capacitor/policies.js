@@ -26,6 +26,7 @@
  * @property {{ provider: CapabilityProvider, showWebUi: boolean }} connectivity
  * @property {{ provider: CapabilityProvider, showWebBackButton: boolean }} navigation
  * @property {{ provider: CapabilityProvider }} camera
+ * @property {{ provider: CapabilityProvider }} location
  */
 
 /** @type {PlatformPolicy} */
@@ -46,6 +47,8 @@ export const webPlatformPolicy = {
   navigation: { provider: 'web', showWebBackButton: true },
   /** getUserMedia */
   camera: { provider: 'web' },
+  /** Geolocation API */
+  location: { provider: 'web' },
 }
 
 /** @type {PlatformPolicy} */
@@ -69,6 +72,8 @@ export const nativePlatformPolicy = {
   navigation: { provider: 'native', showWebBackButton: true },
   /** ViewAppNative / Capacitor Camera / در صورت امکان WebView stream */
   camera: { provider: 'native' },
+  /** ViewAppNative.getLocation یا Geolocation داخل WebView */
+  location: { provider: 'native' },
 }
 
 /**
@@ -86,5 +91,6 @@ export function resolvePlatformPolicy(isNative) {
     connectivity: { ...policy.connectivity },
     navigation: { ...policy.navigation },
     camera: { ...policy.camera },
+    location: { ...policy.location },
   }
 }

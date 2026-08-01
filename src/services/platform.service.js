@@ -24,6 +24,7 @@ export async function initPlatformRuntime() {
     connectivity: activePolicy.connectivity,
     navigation: activePolicy.navigation,
     camera: activePolicy.camera,
+    location: activePolicy.location,
     pwa: activePolicy.pwa,
   })
 
@@ -79,6 +80,7 @@ export function applyPlatformPolicyToConfig(config) {
       connectivityProvider: policy.connectivity?.provider,
       navigationProvider: policy.navigation?.provider,
       cameraProvider: policy.camera?.provider,
+      locationProvider: policy.location?.provider,
       pwa: { ...policy.pwa },
     },
   }

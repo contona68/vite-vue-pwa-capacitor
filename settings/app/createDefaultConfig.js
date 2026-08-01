@@ -20,6 +20,7 @@ export function createDefaultAppConfig() {
       connectivityProvider: webPlatformPolicy.connectivity.provider,
       navigationProvider: webPlatformPolicy.navigation.provider,
       cameraProvider: webPlatformPolicy.camera.provider,
+      locationProvider: webPlatformPolicy.location.provider,
       pwa: { ...webPlatformPolicy.pwa },
     },
   }

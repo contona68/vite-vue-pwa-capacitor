@@ -36,4 +36,7 @@ export const viewAppBridge = {
     close: 'closeCamera',
     capture: 'takePicture',
   },
+
+  /** موقعیت مکانی: ViewAppNative.getLocation() → { latitude, longitude, accuracy } */
+  locationMethod: 'getLocation',
 }

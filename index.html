@@ -27,6 +27,9 @@
     </noscript>
     <title>هایپریک</title>
     <style>
+      html.native-app-redirecting body {
+        visibility: hidden !important;
+      }
       #boot-splash {
         position: fixed;
         inset: 0;
@@ -52,6 +55,35 @@
         transition: opacity 0.3s ease;
       }
     </style>
+    <script>
+      // هدایت زودهنگام مرورگر اندروید → اپ native (اگر نصب باشد)
+      (function () {
+        try {
+          if (!/Android/i.test(navigator.userAgent || '')) return
+          if (/ViewApp\//i.test(navigator.userAgent || '')) return
+          if (window.__VIEWAPP_NATIVE__) return
+          if (sessionStorage.getItem('viewapp-native-open-skip') === '1') return
+          var params = new URLSearchParams(location.search)
+          if (params.get('stay') === '1') {
+            sessionStorage.setItem('viewapp-native-open-skip', '1')
+            return
+          }
+          document.documentElement.classList.add('native-app-redirecting')
+          var fallback = new URL(location.href)
+          fallback.searchParams.set('stay', '1')
+          var intent =
+            'intent://' +
+            location.host +
+            location.pathname +
+            location.search +
+            location.hash +
+            '#Intent;scheme=https;package=hyperyek.com;S.browser_fallback_url=' +
+            encodeURIComponent(fallback.toString()) +
+            ';end'
+          location.replace(intent)
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="boot-splash" aria-hidden="true">

@@ -10,6 +10,7 @@
  *   connectivity/ — پیام آفلاین
  *   sms/          — OTP
  *   camera/       — دوربین وب / native
+ *   location/     — موقعیت مکانی وب / native
  *   splash/       — اسپلش بوت
  *   app/          — کانفیگ تجمیعی و کلیدهای storage
  */
@@ -22,5 +23,6 @@ export * from './features/index.js'
 export * from './connectivity/index.js'
 export * from './sms/index.js'
 export * from './camera/index.js'
+export * from './location/index.js'
 export * from './splash/index.js'
 export * from './app/index.js'
