@@ -6,4 +6,6 @@ export const featuresDefaults = {
   appLock: true,
   /** ورود دومرحله‌ای با OTP */
   otp: true,
+  /** استفاده از دوربین در تنظیمات */
+  camera: false,
 }

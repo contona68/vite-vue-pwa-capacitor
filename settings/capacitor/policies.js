@@ -25,6 +25,7 @@
  * @property {{ provider: CapabilityProvider, hideHtmlSplash: boolean }} splash
  * @property {{ provider: CapabilityProvider, showWebUi: boolean }} connectivity
  * @property {{ provider: CapabilityProvider, showWebBackButton: boolean }} navigation
+ * @property {{ provider: CapabilityProvider }} camera
  */
 
 /** @type {PlatformPolicy} */
@@ -43,6 +44,8 @@ export const webPlatformPolicy = {
   connectivity: { provider: 'web', showWebUi: true },
   /** دکمهٔ بک داخل UI وب */
   navigation: { provider: 'web', showWebBackButton: true },
+  /** getUserMedia */
+  camera: { provider: 'web' },
 }
 
 /** @type {PlatformPolicy} */
@@ -65,6 +68,8 @@ export const nativePlatformPolicy = {
    * (viewapp:back اختیاری — اگر native بعداً بفرستد گوش داده می‌شود)
    */
   navigation: { provider: 'native', showWebBackButton: true },
+  /** ViewAppNative / Capacitor Camera / در صورت امکان WebView stream */
+  camera: { provider: 'native' },
 }
 
 /**
@@ -81,5 +86,6 @@ export function resolvePlatformPolicy(isNative) {
     splash: { ...policy.splash },
     connectivity: { ...policy.connectivity },
     navigation: { ...policy.navigation },
+    camera: { ...policy.camera },
   }
 }

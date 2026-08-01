@@ -4,8 +4,8 @@
       <span
         class="wifi-icon"
         :class="{ offline: !isOnline }"
-        :title="isOnline ? 'آنلاین' : 'آفلاین'"
-        :aria-label="isOnline ? 'اتصال اینترنت برقرار است' : 'اتصال اینترنت قطع است'"
+        :title="isOnline ? 'Ø¢Ù†Ù„Ø§ÛŒÙ†' : 'Ø¢ÙÙ„Ø§ÛŒÙ†'"
+        :aria-label="isOnline ? 'Ø§ØªØµØ§Ù„ Ø§ÛŒÙ†ØªØ±Ù†Øª Ø¨Ø±Ù‚Ø±Ø§Ø± Ø§Ø³Øª' : 'Ø§ØªØµØ§Ù„ Ø§ÛŒÙ†ØªØ±Ù†Øª Ù‚Ø·Ø¹ Ø§Ø³Øª'"
       >
         <svg v-if="isOnline" viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
           <path d="M12 18.5a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z" fill="currentColor" />
@@ -31,10 +31,10 @@
 
     <section class="login-card" aria-labelledby="login-title">
       <div class="brand">
-        <img :src="appIcon" alt="لوگوی اپ" width="64" height="64" />
-        <h1 id="login-title">{{ showUnlockUi ? 'باز کردن برنامه' : 'ورود به حساب' }}</h1>
+        <img :src="appIcon" alt="Ù„ÙˆÚ¯ÙˆÛŒ Ø§Ù¾" width="64" height="64" />
+        <h1 id="login-title">{{ showUnlockUi ? 'Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† Ø¨Ø±Ù†Ø§Ù…Ù‡' : 'ÙˆØ±ÙˆØ¯ Ø¨Ù‡ Ø­Ø³Ø§Ø¨' }}</h1>
         <p v-if="showUnlockUi" class="subtitle">
-          اثرانگشت را تأیید کنید. اگر پنجره بسته شد، روی آیکون بزنید.
+          Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª Ø±Ø§ ØªØ£ÛŒÛŒØ¯ Ú©Ù†ÛŒØ¯. Ø§Ú¯Ø± Ù¾Ù†Ø¬Ø±Ù‡ Ø¨Ø³ØªÙ‡ Ø´Ø¯ØŒ Ø±ÙˆÛŒ Ø¢ÛŒÚ©ÙˆÙ† Ø¨Ø²Ù†ÛŒØ¯.
         </p>
       </div>
 
@@ -43,7 +43,7 @@
           v-if="!isUnlocking"
           type="button"
           class="fingerprint-btn"
-          aria-label="باز کردن با اثرانگشت"
+          aria-label="Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† Ø¨Ø§ Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª"
           @click="onUnlock"
         >
           <svg viewBox="0 0 24 24" width="56" height="56" aria-hidden="true" fill="none">
@@ -60,7 +60,7 @@
           <p>{{ unlockStatus }}</p>
         </div>
         <button type="button" class="skip-link" :disabled="isUnlocking" @click="usePasswordInstead">
-          ورود با نام کاربری و رمز
+          ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ Ùˆ Ø±Ù…Ø²
         </button>
       </div>
 
@@ -70,25 +70,25 @@
         @submit.prevent="onSubmit"
       >
         <label class="field">
-          <span>نام کاربری</span>
+          <span>Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ</span>
           <input
             v-model.trim="username"
             type="text"
             name="username"
             autocomplete="username"
-            placeholder="مثلاً admin"
+            placeholder="Ù…Ø«Ù„Ø§Ù‹ admin"
             required
           />
         </label>
 
         <label class="field">
-          <span>رمز عبور</span>
+          <span>Ø±Ù…Ø² Ø¹Ø¨ÙˆØ±</span>
           <input
             v-model="password"
             type="password"
             name="password"
             autocomplete="current-password"
-            placeholder="••••••••"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
             required
           />
         </label>
@@ -96,7 +96,7 @@
         <p v-if="errorMessage" class="error" role="alert">{{ errorMessage }}</p>
 
         <button class="btn primary" type="submit" :disabled="isSubmitting || !isOnline">
-          {{ isSubmitting ? 'در حال ورود...' : 'ورود' }}
+          {{ isSubmitting ? 'Ø¯Ø± Ø­Ø§Ù„ ÙˆØ±ÙˆØ¯...' : 'ÙˆØ±ÙˆØ¯' }}
         </button>
       </form>
 
@@ -111,13 +111,13 @@
       aria-labelledby="no-bio-title"
     >
       <div class="modal-card">
-        <h2 id="no-bio-title">اثرانگشت تعریف نشده</h2>
+        <h2 id="no-bio-title">Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª ØªØ¹Ø±ÛŒÙ Ù†Ø´Ø¯Ù‡</h2>
         <p>
-          برای باز کردن برنامه با اثرانگشت، ابتدا از تنظیمات گوشی یک اثرانگشت ثبت کنید. سپس می‌توانید دوباره
-          تلاش کنید.
+          Ø¨Ø±Ø§ÛŒ Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† Ø¨Ø±Ù†Ø§Ù…Ù‡ Ø¨Ø§ Ø§Ø«Ø±Ø§Ù†Ú¯Ø´ØªØŒ Ø§Ø¨ØªØ¯Ø§ Ø§Ø² ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ú¯ÙˆØ´ÛŒ ÛŒÚ© Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª Ø«Ø¨Øª Ú©Ù†ÛŒØ¯. Ø³Ù¾Ø³ Ù…ÛŒâ€ŒØªÙˆØ§Ù†ÛŒØ¯ Ø¯ÙˆØ¨Ø§Ø±Ù‡
+          ØªÙ„Ø§Ø´ Ú©Ù†ÛŒØ¯.
         </p>
         <button type="button" class="btn primary" @click="usePasswordInstead">
-          ورود با نام کاربری و رمز عبور
+          ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ Ùˆ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ±
         </button>
       </div>
     </div>
@@ -154,7 +154,7 @@ const password = ref('')
 const errorMessage = ref('')
 const isSubmitting = ref(false)
 const isUnlocking = ref(false)
-const unlockStatus = ref('انگشت خود را روی حسگر قرار دهید...')
+const unlockStatus = ref('Ø§Ù†Ú¯Ø´Øª Ø®ÙˆØ¯ Ø±Ø§ Ø±ÙˆÛŒ Ø­Ø³Ú¯Ø± Ù‚Ø±Ø§Ø± Ø¯Ù‡ÛŒØ¯...')
 const forcePasswordForm = ref(false)
 const showUnlockUi = ref(false)
 const showNoBiometricModal = ref(false)
@@ -179,7 +179,7 @@ watch(
 
 watch(isOnline, async (online) => {
   if (online && isLoggedIn()) {
-    await router.replace({ name: 'home' })
+    await router.replace({ name: 'settings' })
     return
   }
   if (online) {
@@ -190,9 +190,9 @@ watch(isOnline, async (online) => {
   }
 })
 
-async function goHomeAuthenticated() {
+async function goSettingsAuthenticated() {
   openAuthenticatedSession()
-  await router.replace({ name: 'home' })
+  await router.replace({ name: 'settings' })
 }
 
 async function onSubmit() {
@@ -201,27 +201,27 @@ async function onSubmit() {
 
   try {
     if (!isOnline.value) {
-      errorMessage.value = 'برای ورود به اینترنت نیاز دارید.'
+      errorMessage.value = 'Ø¨Ø±Ø§ÛŒ ÙˆØ±ÙˆØ¯ Ø¨Ù‡ Ø§ÛŒÙ†ØªØ±Ù†Øª Ù†ÛŒØ§Ø² Ø¯Ø§Ø±ÛŒØ¯.'
       return
     }
 
     await new Promise((resolve) => setTimeout(resolve, 300))
 
     if (!username.value || !password.value) {
-      errorMessage.value = 'نام کاربری و رمز عبور الزامی است.'
+      errorMessage.value = 'Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ Ùˆ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª.'
       return
     }
 
     if (!isFeatureEnabled('otp')) {
       await completeTokenLogin(username.value, '')
-      await router.replace({ name: 'home' })
+      await router.replace({ name: 'settings' })
       return
     }
 
     beginPendingLogin(username.value)
     await router.push({ name: 'otp' })
   } catch (error) {
-    errorMessage.value = error?.message || 'ورود ناموفق بود.'
+    errorMessage.value = error?.message || 'ÙˆØ±ÙˆØ¯ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯.'
   } finally {
     isSubmitting.value = false
   }
@@ -232,35 +232,35 @@ function onUnlock() {
 
   errorMessage.value = ''
   if (!isOnline.value) {
-    errorMessage.value = 'برای باز کردن برنامه به اینترنت نیاز دارید.'
+    errorMessage.value = 'Ø¨Ø±Ø§ÛŒ Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† Ø¨Ø±Ù†Ø§Ù…Ù‡ Ø¨Ù‡ Ø§ÛŒÙ†ØªØ±Ù†Øª Ù†ÛŒØ§Ø² Ø¯Ø§Ø±ÛŒØ¯.'
     return
   }
 
   const unlockPromise = unlockWithBiometric()
   isUnlocking.value = true
-  unlockStatus.value = 'انگشت خود را روی حسگر قرار دهید...'
+  unlockStatus.value = 'Ø§Ù†Ú¯Ø´Øª Ø®ÙˆØ¯ Ø±Ø§ Ø±ÙˆÛŒ Ø­Ø³Ú¯Ø± Ù‚Ø±Ø§Ø± Ø¯Ù‡ÛŒØ¯...'
 
   unlockPromise
     .then(async () => {
-      // اثرانگشت فقط قفل است؛ لاگین بودن با توکن چک می‌شود
-      unlockStatus.value = 'در حال بررسی نشست...'
+      // Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª ÙÙ‚Ø· Ù‚ÙÙ„ Ø§Ø³ØªØ› Ù„Ø§Ú¯ÛŒÙ† Ø¨ÙˆØ¯Ù† Ø¨Ø§ ØªÙˆÚ©Ù† Ú†Ú© Ù…ÛŒâ€ŒØ´ÙˆØ¯
+      unlockStatus.value = 'Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø±Ø±Ø³ÛŒ Ù†Ø´Ø³Øª...'
       const login = await checkLoginByToken()
       if (!login.ok) {
         showUnlockUi.value = false
         forcePasswordForm.value = true
         errorMessage.value =
           login.reason === 'expired'
-            ? 'نشست منقضی شده است. دوباره وارد شوید.'
-            : 'نشست معتبر نیست. دوباره وارد شوید.'
+            ? 'Ù†Ø´Ø³Øª Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯.'
+            : 'Ù†Ø´Ø³Øª Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯.'
         return
       }
-      await goHomeAuthenticated()
+      await goSettingsAuthenticated()
     })
     .catch((error) => {
       if (error?.name === 'NotAllowedError') {
-        errorMessage.value = 'تأیید اثرانگشت انجام نشد. دوباره روی آیکون بزنید.'
+        errorMessage.value = 'ØªØ£ÛŒÛŒØ¯ Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ Ø±ÙˆÛŒ Ø¢ÛŒÚ©ÙˆÙ† Ø¨Ø²Ù†ÛŒØ¯.'
       } else {
-        errorMessage.value = error?.message || 'باز کردن برنامه ممکن نشد.'
+        errorMessage.value = error?.message || 'Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† Ø¨Ø±Ù†Ø§Ù…Ù‡ Ù…Ù…Ú©Ù† Ù†Ø´Ø¯.'
       }
     })
     .finally(() => {
@@ -269,7 +269,7 @@ function onUnlock() {
 }
 
 function usePasswordInstead() {
-  // معادل خروج از قفل و ورود مجدد با فرم
+  // Ù…Ø¹Ø§Ø¯Ù„ Ø®Ø±ÙˆØ¬ Ø§Ø² Ù‚ÙÙ„ Ùˆ ÙˆØ±ÙˆØ¯ Ù…Ø¬Ø¯Ø¯ Ø¨Ø§ ÙØ±Ù…
   showNoBiometricModal.value = false
   showUnlockUi.value = false
   performLogout()
@@ -286,8 +286,8 @@ async function triggerUnlockAutomatically() {
 }
 
 /**
- * توکن = لاگین پایدار
- * اثرانگشت = فقط قفل (اگر خروج نزده باشد و شرایط برقرار باشد)
+ * ØªÙˆÚ©Ù† = Ù„Ø§Ú¯ÛŒÙ† Ù¾Ø§ÛŒØ¯Ø§Ø±
+ * Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª = ÙÙ‚Ø· Ù‚ÙÙ„ (Ø§Ú¯Ø± Ø®Ø±ÙˆØ¬ Ù†Ø²Ø¯Ù‡ Ø¨Ø§Ø´Ø¯ Ùˆ Ø´Ø±Ø§ÛŒØ· Ø¨Ø±Ù‚Ø±Ø§Ø± Ø¨Ø§Ø´Ø¯)
  */
 async function prepareEntryFlow() {
   isResolvingGate.value = true
@@ -301,31 +301,31 @@ async function prepareEntryFlow() {
     }
 
     if (isLoggedIn()) {
-      await router.replace({ name: 'home' })
+      await router.replace({ name: 'settings' })
       return
     }
 
-    // هر بار وضعیت لاگین با توکن چک می‌شود
+    // Ù‡Ø± Ø¨Ø§Ø± ÙˆØ¶Ø¹ÛŒØª Ù„Ø§Ú¯ÛŒÙ† Ø¨Ø§ ØªÙˆÚ©Ù† Ú†Ú© Ù…ÛŒâ€ŒØ´ÙˆØ¯
     const login = await checkLoginByToken()
     if (!login.ok) {
-      // بدون توکن یا منقضی → فرم لاگین
+      // Ø¨Ø¯ÙˆÙ† ØªÙˆÚ©Ù† ÛŒØ§ Ù…Ù†Ù‚Ø¶ÛŒ â†’ ÙØ±Ù… Ù„Ø§Ú¯ÛŒÙ†
       forcePasswordForm.value = true
       return
     }
 
-    // توکن معتبر؛ اگر قبلاً در این نشست آنلاک شده → خانه
+    // ØªÙˆÚ©Ù† Ù…Ø¹ØªØ¨Ø±Ø› Ø§Ú¯Ø± Ù‚Ø¨Ù„Ø§Ù‹ Ø¯Ø± Ø§ÛŒÙ† Ù†Ø´Ø³Øª Ø¢Ù†Ù„Ø§Ú© Ø´Ø¯Ù‡ â†’ Ø®Ø§Ù†Ù‡
     if (isSessionUnlocked()) {
-      await goHomeAuthenticated()
+      await goSettingsAuthenticated()
       return
     }
 
-    // قفل اثرانگشت فقط وقتی شرایط باشد (خروج نزده = توکن هست)
+    // Ù‚ÙÙ„ Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª ÙÙ‚Ø· ÙˆÙ‚ØªÛŒ Ø´Ø±Ø§ÛŒØ· Ø¨Ø§Ø´Ø¯ (Ø®Ø±ÙˆØ¬ Ù†Ø²Ø¯Ù‡ = ØªÙˆÚ©Ù† Ù‡Ø³Øª)
     if (!shouldShowAppLockGate(login.username)) {
-      await goHomeAuthenticated()
+      await goSettingsAuthenticated()
       return
     }
 
-    // مرحله ۳ اختصاصی: اثرانگشت روی دستگاه ثبت شده؟
+    // Ù…Ø±Ø­Ù„Ù‡ Û³ Ø§Ø®ØªØµØ§ØµÛŒ: Ø§Ø«Ø±Ø§Ù†Ú¯Ø´Øª Ø±ÙˆÛŒ Ø¯Ø³ØªÚ¯Ø§Ù‡ Ø«Ø¨Øª Ø´Ø¯Ù‡ØŸ
     const enrolled = await checkAppLockBiometricEnrolled()
     if (!enrolled) {
       showNoBiometricModal.value = true

@@ -56,7 +56,7 @@ export function shouldShowAppLockGate(username = getTokenUsername()) {
   return true
 }
 
-/** ورود به خانه بعد از توکن معتبر (و در صورت نیاز بعد از آنلاک) */
+/** ورود به ناحیهٔ لاگین‌شده بعد از توکن معتبر (و در صورت نیاز بعد از آنلاک) */
 export function openAuthenticatedSession() {
   markSessionUnlocked()
 }

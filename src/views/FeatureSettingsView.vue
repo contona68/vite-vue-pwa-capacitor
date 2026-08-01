@@ -44,6 +44,60 @@
           </li>
         </ul>
 
+        <!-- پنل دوربین: فقط وقتی قابلیت دوربین در پیش‌نویس فعال است -->
+        <section v-if="draftFeatures.camera" class="camera-panel" aria-labelledby="camera-panel-title">
+          <div class="camera-panel-head">
+            <h2 id="camera-panel-title">دوربین</h2>
+            <span class="camera-provider">منبع: {{ cameraProviderLabel }}</span>
+          </div>
+          <p class="camera-hint">
+            «باز کردن / ریست» پیش‌نمایش را شروع یا نوسازی می‌کند؛ «عکس بگیر» همان فریم را ثبت و نمایش می‌دهد.
+          </p>
+
+          <div class="camera-preview-wrap">
+            <video
+              ref="videoRef"
+              class="camera-preview"
+              autoplay
+              playsinline
+              muted
+              :class="{ 'is-active': cameraReady }"
+            />
+            <p v-if="!cameraReady && !capturedPhoto" class="camera-placeholder">
+              پیش‌نمایش دوربین اینجا دیده می‌شود
+            </p>
+            <p v-else-if="cameraMode === 'native-prompt'" class="camera-placeholder">
+              دوربین native آماده است؛ با «عکس بگیر» دیالوگ دستگاه باز می‌شود
+            </p>
+          </div>
+
+          <div class="camera-actions">
+            <button
+              type="button"
+              class="btn ghost"
+              :disabled="cameraBusy"
+              @click="onOpenOrResetCamera"
+            >
+              {{ cameraReady ? 'ریست دوربین' : 'باز کردن دوربین' }}
+            </button>
+            <button
+              type="button"
+              class="btn primary"
+              :disabled="cameraBusy || (!cameraReady && cameraMode !== 'native-prompt')"
+              @click="onCapturePhoto"
+            >
+              عکس بگیر
+            </button>
+          </div>
+
+          <p v-if="cameraError" class="error" role="alert">{{ cameraError }}</p>
+
+          <figure v-if="capturedPhoto" class="captured-figure">
+            <figcaption>عکس گرفته‌شده</figcaption>
+            <img :src="capturedPhoto" alt="عکس گرفته‌شده از دوربین" class="captured-photo" />
+          </figure>
+        </section>
+
         <div class="actions">
           <button type="button" class="btn ghost" :disabled="saving" @click="onReset">
             بازگشت به پیش‌فرض
@@ -58,7 +112,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import AppNav from '@/components/AppNav.vue'
 import {
   appConfig,
@@ -72,6 +126,13 @@ import {
   checkAppLockSettingEnabled,
 } from '@/utils/appLock'
 import { getTokenUsername } from '@/utils/auth'
+import {
+  capturePhoto,
+  closeCamera,
+  getCameraProviderLabel,
+  openCamera,
+  resetCamera,
+} from '@/services/camera.service'
 
 const featureItems = [
   {
@@ -84,6 +145,11 @@ const featureItems = [
     title: 'ورود دو مرحله‌ای',
     description: 'بعد از نام کاربری و رمز، از کد پیامک ارسالی هم استفاده می‌شود.',
   },
+  {
+    key: 'camera',
+    title: 'استفاده از دوربین',
+    description: 'امکان باز کردن دوربین و گرفتن عکس در همین صفحه.',
+  },
 ]
 
 const draftFeatures = reactive({})
@@ -93,9 +159,19 @@ const saving = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 
-const sourceFeatures = computed(() => appConfig.value.features)
+const videoRef = ref(null)
+const cameraReady = ref(false)
+const cameraBusy = ref(false)
+const cameraError = ref('')
+const capturedPhoto = ref('')
+/** @type {import('vue').Ref<'stream' | 'native-prompt' | 'native-bridge' | ''>} */
+const cameraMode = ref('')
 
+const sourceFeatures = computed(() => appConfig.value.features)
 const canShowAppLockToggle = computed(() => isFeatureEnabled('appLock'))
+const cameraProviderLabel = computed(() =>
+  getCameraProviderLabel() === 'native' ? 'دستگاه (native)' : 'وب (getUserMedia)',
+)
 
 function syncDraftFromConfig() {
   featureItems.forEach(({ key }) => {
@@ -109,12 +185,68 @@ function onFeatureToggle(key, checked) {
   draftFeatures[key] = checked
   dirty.value = true
   successMessage.value = ''
+  if (key === 'camera' && !checked) {
+    shutdownCamera()
+  }
 }
 
 function onAppLockToggle(checked) {
   draftAppLockEnabled.value = checked
   dirty.value = true
   successMessage.value = ''
+}
+
+async function shutdownCamera() {
+  try {
+    await closeCamera({ videoElement: videoRef.value || undefined })
+  } catch (_) {
+    // ignore
+  }
+  cameraReady.value = false
+  cameraMode.value = ''
+  cameraError.value = ''
+  capturedPhoto.value = ''
+}
+
+async function onOpenOrResetCamera() {
+  cameraError.value = ''
+  cameraBusy.value = true
+  try {
+    await nextTick()
+    const options = { videoElement: videoRef.value || undefined }
+    const result = cameraReady.value
+      ? await resetCamera(options)
+      : await openCamera(options)
+
+    cameraMode.value = result?.mode || ''
+    cameraReady.value = true
+    if (result?.mode === 'native-prompt') {
+      cameraError.value = ''
+      // بدون پیش‌نمایش استریم؛ عکس با دیالوگ native گرفته می‌شود
+    }
+  } catch (error) {
+    cameraReady.value = false
+    cameraMode.value = ''
+    cameraError.value = error?.message || 'باز کردن دوربین ناموفق بود.'
+  } finally {
+    cameraBusy.value = false
+  }
+}
+
+async function onCapturePhoto() {
+  cameraError.value = ''
+  cameraBusy.value = true
+  try {
+    const result = await capturePhoto({ videoElement: videoRef.value || undefined })
+    capturedPhoto.value = result?.dataUrl || ''
+    if (!capturedPhoto.value) {
+      throw new Error('عکسی ثبت نشد.')
+    }
+  } catch (error) {
+    cameraError.value = error?.message || 'گرفتن عکس ناموفق بود.'
+  } finally {
+    cameraBusy.value = false
+  }
 }
 
 async function onSave() {
@@ -141,6 +273,10 @@ async function onSave() {
       }
     }
 
+    if (!draftFeatures.camera) {
+      await shutdownCamera()
+    }
+
     dirty.value = false
     successMessage.value = 'تنظیمات ذخیره شد.'
   } catch (error) {
@@ -157,6 +293,7 @@ async function onReset() {
   try {
     await resetAppConfig()
     disableAppLock()
+    await shutdownCamera()
     syncDraftFromConfig()
     successMessage.value = 'تنظیمات به حالت پیش‌فرض برگشت.'
   } catch (error) {
@@ -168,6 +305,10 @@ async function onReset() {
 
 onMounted(() => {
   syncDraftFromConfig()
+})
+
+onBeforeUnmount(() => {
+  shutdownCamera()
 })
 
 watch(sourceFeatures, () => {
@@ -276,6 +417,100 @@ h1 {
 
 .switch input:checked + .slider::before {
   transform: translateX(16px);
+}
+
+.camera-panel {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border-radius: 0.7rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.camera-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.camera-panel-head h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.camera-provider {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.camera-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.camera-preview-wrap {
+  position: relative;
+  min-height: 180px;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.camera-preview {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  background: #0f172a;
+  opacity: 0;
+}
+
+.camera-preview.is-active {
+  opacity: 1;
+}
+
+.camera-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  pointer-events: none;
+}
+
+.camera-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.captured-figure {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.captured-figure figcaption {
+  font-size: 0.78rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.captured-photo {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 0.55rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .actions {

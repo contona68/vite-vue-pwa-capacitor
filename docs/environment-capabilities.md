@@ -26,6 +26,7 @@
 | UI آفلاین داخل صفحه | وب | **وب** | پیام/آیکون لاگین (native فقط notify می‌کند) |
 | OTP از SMS | وب (WebOTP) | لایه بالا | `ViewAppOtp` / `viewapp:otp-received` / `ViewAppNative.startSmsListen` |
 | بیومتریک / اثرانگشت | وب (WebAuthn) | لایه بالا | پلاگین Capacitor (`NativeBiometric` و…) |
+| دوربین | وب (`getUserMedia` + canvas) | لایه بالا | `ViewAppNative` / پلاگین `Camera` / در صورت امکان استریم WebView |
 | Splash بوت | وب (HTML) | لایه بالا | `SplashScreen.hide` / `ViewAppNative.hideSplash` |
 | بک سخت‌افزاری / سیستم | — | لایه بالا (WebView) | فعلاً `WebView.goBack()`؛ `viewapp:back` اختیاری |
 | لود URL WebView | — | لایه بالا | کانفیگ ViewApp / APK |
@@ -44,4 +45,4 @@
 ## خلاصه یک‌خطی
 
 - **لود در مرورگر:** همه نیازها از وب.
-- **لود در Capacitor:** شبکه/OTP/بیومتریک/splash از **لایه بالا**؛ UI آفلاین، روتینگ، دکمه بک داخل اپ و کش لاگین از **وب**.
+- **لود در Capacitor:** شبکه/OTP/بیومتریک/دوربین/splash از **لایه بالا**؛ UI آفلاین، روتینگ، دکمه بک داخل اپ و کش لاگین از **وب**.

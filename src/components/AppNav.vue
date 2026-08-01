@@ -11,12 +11,10 @@
         <span aria-hidden="true">→</span>
         بازگشت
       </button>
-      <RouterLink class="brand" :to="{ name: 'home' }">{{ brandName }}</RouterLink>
+      <RouterLink class="brand" :to="brandTarget">{{ brandName }}</RouterLink>
     </div>
     <div class="links">
-      <RouterLink :to="{ name: 'home' }">خانه</RouterLink>
-      <RouterLink :to="{ name: 'about' }">درباره</RouterLink>
-      <RouterLink v-if="loggedIn" :to="{ name: 'feature-settings' }">تنظیمات</RouterLink>
+      <RouterLink v-if="loggedIn" :to="{ name: 'settings' }">تنظیمات</RouterLink>
       <!-- TEMP: فقط برای تست انقضای توکن — بعداً حذف شود -->
       <button
         v-if="loggedIn"
@@ -51,6 +49,9 @@ const loggedIn = computed(() => {
   return isLoggedIn()
 })
 const brandName = computed(() => appConfig.value.branding.appName)
+const brandTarget = computed(() =>
+  loggedIn.value ? { name: 'settings' } : { name: 'login' },
+)
 const showBack = computed(
   () => shouldShowWebBackButton() && isBackableRoute(route.name),
 )

@@ -26,4 +26,14 @@ export const viewAppBridge = {
    */
   navigationApi: 'ViewAppNav',
   backEvent: 'viewapp:back',
+
+  /**
+   * اختیاری — اگر shell متدهای دوربین را روی ViewAppNative بگذارد:
+   * openCamera / closeCamera / takePicture
+   */
+  cameraMethods: {
+    open: 'openCamera',
+    close: 'closeCamera',
+    capture: 'takePicture',
+  },
 }

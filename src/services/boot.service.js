@@ -9,7 +9,7 @@ import { isBrowserOnline } from '@/utils/network'
 
 /**
  * تصمیم مسیر شروع اپ
- * ترتیب: توکن → (در صورت نیاز قفل اثرانگشت) → خانه
+ * ترتیب: توکن → (در صورت نیاز قفل اثرانگشت) → تنظیمات
  * @returns {Promise<string>} route name
  */
 export async function resolveBootRouteName() {
@@ -34,5 +34,5 @@ export async function resolveBootRouteName() {
   }
 
   openAuthenticatedSession()
-  return 'home'
+  return 'settings'
 }

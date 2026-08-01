@@ -19,6 +19,7 @@ export function createDefaultAppConfig() {
       biometricProvider: webPlatformPolicy.biometric.provider,
       connectivityProvider: webPlatformPolicy.connectivity.provider,
       navigationProvider: webPlatformPolicy.navigation.provider,
+      cameraProvider: webPlatformPolicy.camera.provider,
       pwa: { ...webPlatformPolicy.pwa },
     },
   }

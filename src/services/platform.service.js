@@ -23,6 +23,7 @@ export async function initPlatformRuntime() {
     biometric: activePolicy.biometric.provider,
     connectivity: activePolicy.connectivity,
     navigation: activePolicy.navigation,
+    camera: activePolicy.camera,
     pwa: activePolicy.pwa,
   })
 
@@ -77,6 +78,7 @@ export function applyPlatformPolicyToConfig(config) {
       biometricProvider: policy.biometric.provider,
       connectivityProvider: policy.connectivity?.provider,
       navigationProvider: policy.navigation?.provider,
+      cameraProvider: policy.camera?.provider,
       pwa: { ...policy.pwa },
     },
   }

@@ -2,12 +2,12 @@
   <main class="page login-page">
     <section class="login-card" aria-labelledby="otp-title">
       <div class="brand">
-        <img :src="appIcon" alt="لوگوی اپ" width="56" height="56" />
-        <h1 id="otp-title">تأیید پیامکی</h1>
+        <img :src="appIcon" alt="Ù„ÙˆÚ¯ÙˆÛŒ Ø§Ù¾" width="56" height="56" />
+        <h1 id="otp-title">ØªØ£ÛŒÛŒØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ</h1>
         <p class="subtitle">
-          کد ارسال‌شده برای
-          <strong>{{ username || 'کاربر' }}</strong>
-          را وارد کنید.
+          Ú©Ø¯ Ø§Ø±Ø³Ø§Ù„â€ŒØ´Ø¯Ù‡ Ø¨Ø±Ø§ÛŒ
+          <strong>{{ username || 'Ú©Ø§Ø±Ø¨Ø±' }}</strong>
+          Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù†ÛŒØ¯.
         </p>
       </div>
 
@@ -15,7 +15,7 @@
         <div
           class="otp-boxes"
           role="group"
-          :aria-label="`کد تأیید ${OTP_LENGTH} رقمی`"
+          :aria-label="`Ú©Ø¯ ØªØ£ÛŒÛŒØ¯ ${OTP_LENGTH} Ø±Ù‚Ù…ÛŒ`"
           :style="{ '--otp-length': OTP_LENGTH }"
         >
           <input
@@ -30,7 +30,7 @@
             :name="index === 0 ? 'one-time-code' : undefined"
             :autocomplete="index === 0 ? 'one-time-code' : 'off'"
             :value="digit"
-            :aria-label="`رقم ${index + 1}`"
+            :aria-label="`Ø±Ù‚Ù… ${index + 1}`"
             @input="onDigitInput(index, $event)"
             @keydown="onDigitKeydown(index, $event)"
             @paste="onOtpPaste"
@@ -44,11 +44,11 @@
           type="submit"
           :disabled="isSubmitting || !isOnline || otpCode.length < OTP_LENGTH"
         >
-          {{ isSubmitting ? 'در حال بررسی...' : 'تأیید کد' }}
+          {{ isSubmitting ? 'Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø±Ø±Ø³ÛŒ...' : 'ØªØ£ÛŒÛŒØ¯ Ú©Ø¯' }}
         </button>
 
           <button class="btn ghost" type="button" @click="onBack">
-            بازگشت
+            Ø¨Ø§Ø²Ú¯Ø´Øª
           </button>
       </form>
     </section>
@@ -172,7 +172,7 @@ async function onSubmit() {
   applyOtpToBoxes(code)
 
   if (code.length !== OTP_LENGTH) {
-    errorMessage.value = `کد باید ${OTP_LENGTH} رقم باشد.`
+    errorMessage.value = `Ú©Ø¯ Ø¨Ø§ÛŒØ¯ ${OTP_LENGTH} Ø±Ù‚Ù… Ø¨Ø§Ø´Ø¯.`
     return
   }
 
@@ -180,27 +180,27 @@ async function onSubmit() {
 
   try {
     if (!isOnline.value) {
-      errorMessage.value = 'برای ورود به اینترنت نیاز دارید.'
+      errorMessage.value = 'Ø¨Ø±Ø§ÛŒ ÙˆØ±ÙˆØ¯ Ø¨Ù‡ Ø§ÛŒÙ†ØªØ±Ù†Øª Ù†ÛŒØ§Ø² Ø¯Ø§Ø±ÛŒØ¯.'
       return
     }
 
     if (code !== DEMO_OTP_CODE) {
-      errorMessage.value = 'کد واردشده نادرست است.'
+      errorMessage.value = 'Ú©Ø¯ ÙˆØ§Ø±Ø¯Ø´Ø¯Ù‡ Ù†Ø§Ø¯Ø±Ø³Øª Ø§Ø³Øª.'
       return
     }
 
     const pendingUser = getPendingUser()
     if (!pendingUser) {
-      errorMessage.value = 'نشست ورود منقضی شده است.'
+      errorMessage.value = 'Ù†Ø´Ø³Øª ÙˆØ±ÙˆØ¯ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.'
       await router.replace({ name: 'login' })
       return
     }
 
     stopSmsOtpListener()
     await completeTokenLogin(pendingUser, code)
-    await router.replace({ name: 'home' })
+    await router.replace({ name: 'settings' })
   } catch (error) {
-    errorMessage.value = error?.message || 'صدور توکن ناموفق بود.'
+    errorMessage.value = error?.message || 'ØµØ¯ÙˆØ± ØªÙˆÚ©Ù† Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯.'
   } finally {
     isSubmitting.value = false
   }
@@ -256,7 +256,7 @@ async function finishWithoutOtpIfDisabled() {
   }
   stopSmsOtpListener()
   await completeTokenLogin(pendingUser, '')
-  await router.replace({ name: 'home' })
+  await router.replace({ name: 'settings' })
   return true
 }
 
@@ -266,7 +266,7 @@ onMounted(async () => {
     return
   }
   if (isLoggedIn()) {
-    await router.replace({ name: 'home' })
+    await router.replace({ name: 'settings' })
     return
   }
   if (!hasPendingLogin()) {
