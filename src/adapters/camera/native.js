@@ -1,10 +1,11 @@
 /**
  * Camera — native (Capacitor / ViewApp)
  *
- * اولویت:
- * 1) ViewAppNative (اگر shell متد دوربین expose کند)
- * 2) استریم داخل WebView (getUserMedia) برای UX مشابه وب
- * 3) پلاگین Capacitor Camera برای گرفتن عکس سیستم
+ * اولویت برای UX مشابه وب:
+ * 1) استریم زنده داخل WebView (getUserMedia) → پیش‌نمایش + عکس از همان فریم
+ * 2) اگر استریم ممکن نبود: ViewAppNative.takePicture / پلاگین سیستم
+ *
+ * openCamera روی shell فقط اجازه را آماده می‌کند؛ پیش‌نمایش از WebView است.
  */
 
 import { getCapacitorPlugin } from '@/adapters/bridge'
@@ -29,12 +30,12 @@ function resolveCameraPlugin() {
 }
 
 export async function isCameraSupported() {
+  if (await webCamera.isCameraSupported()) return true
   const api = getNativeApi()
   if (typeof api?.takePicture === 'function' || typeof api?.openCamera === 'function') {
     return true
   }
-  if (resolveCameraPlugin()) return true
-  return webCamera.isCameraSupported()
+  return Boolean(resolveCameraPlugin())
 }
 
 /**
@@ -43,17 +44,20 @@ export async function isCameraSupported() {
 export async function openCamera(options = {}) {
   const api = getNativeApi()
 
+  // اجازهٔ native را اگر لازم است بگیر، ولی پیش‌نمایش را از WebView ادامه بده
   if (typeof api?.openCamera === 'function') {
-    await api.openCamera()
-    return { mode: 'native-bridge' }
+    try {
+      await api.openCamera()
+    } catch (error) {
+      console.warn('[Camera:native] openCamera permission/bridge failed:', error)
+    }
   }
 
-  // WebView اغلب getUserMedia را پشتیبانی می‌کند
   if (options.videoElement && (await webCamera.isCameraSupported())) {
     try {
       return await webCamera.openCamera(options)
     } catch (error) {
-      console.warn('[Camera:native] getUserMedia failed, will use plugin on capture:', error)
+      console.warn('[Camera:native] getUserMedia failed, fallback to system camera:', error)
     }
   }
 
@@ -62,7 +66,6 @@ export async function openCamera(options = {}) {
     try {
       await plugin.requestPermissions({ permissions: ['camera'] })
     } catch (_) {
-      // بعضی نسخه‌ها permissions ساده‌تر دارند
       try {
         await plugin.requestPermissions()
       } catch (error) {
@@ -71,7 +74,7 @@ export async function openCamera(options = {}) {
     }
   }
 
-  if (plugin || api) {
+  if (plugin || typeof api?.takePicture === 'function') {
     return { mode: 'native-prompt' }
   }
 
@@ -103,8 +106,14 @@ export async function closeCamera(options = {}) {
  * @returns {Promise<{ dataUrl: string }>}
  */
 export async function capturePhoto(options = {}) {
-  const api = getNativeApi()
+  // اگر پیش‌نمایش زنده فعال است، همان فریم را بگیر (مثل وب)
+  try {
+    return await webCamera.capturePhoto(options)
+  } catch (_) {
+    // ادامه با Intent / پلاگین
+  }
 
+  const api = getNativeApi()
   if (typeof api?.takePicture === 'function') {
     const result = await api.takePicture()
     const dataUrl = normalizeDataUrl(result?.dataUrl || result?.base64 || result)
@@ -114,16 +123,9 @@ export async function capturePhoto(options = {}) {
     return { dataUrl }
   }
 
-  // اگر استریم وب داخل WebView فعال است
-  try {
-    return await webCamera.capturePhoto(options)
-  } catch (_) {
-    // ادامه با پلاگین
-  }
-
   const plugin = resolveCameraPlugin()
   if (!plugin?.getPhoto) {
-    throw new Error('پلاگین Camera در پروژهٔ native نصب یا در دسترس نیست.')
+    throw new Error('پیش‌نمایش دوربین فعال نیست و دوربین سیستم هم در دسترس نیست.')
   }
 
   const photo = await plugin.getPhoto({
