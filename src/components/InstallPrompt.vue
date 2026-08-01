@@ -4,20 +4,22 @@
       <aside
         v-if="visible"
         class="install-banner"
-        :class="{ 'is-guide': isGuide, 'is-ios-guide': isIosGuide }"
+        :class="{ 'is-steps': stepsVisible, 'is-ios': surface === 'ios' && stepsVisible }"
         role="dialog"
-        :aria-labelledby="bannerTitleId"
+        aria-labelledby="install-title"
       >
         <img class="app-icon" :src="appIcon" alt="" width="48" height="48" />
 
-        <!-- فقط iOS: Share / Add to Home Screen (پلتفرم BIP ندارد) -->
-        <template v-if="isIosGuide">
-          <div class="text">
-            <strong :id="bannerTitleId">{{ pwaUi.iosGuideTitle }}</strong>
-            <p v-if="needsSafariHint">{{ pwaUi.iosNeedsSafari }}</p>
-            <p v-else>{{ pwaUi.iosGuideIntro }}</p>
+        <div class="text">
+          <strong id="install-title">{{ pwaUi.installTitle }}</strong>
+          <p>{{ pwaUi.installBody }}</p>
 
-            <ol class="guide-steps" aria-label="مراحل نصب">
+          <template v-if="stepsVisible">
+            <p v-if="surface === 'ios' && !onIosSafari" class="steps-intro">{{ pwaUi.iosNeedsSafari }}</p>
+            <p v-else class="steps-intro">{{ pwaUi.installStepsIntro }}</p>
+
+            <!-- مراحل iOS -->
+            <ol v-if="surface === 'ios'" class="guide-steps" aria-label="مراحل نصب">
               <li>
                 <span class="step-badge" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
@@ -65,23 +67,9 @@
                 </span>
               </li>
             </ol>
-          </div>
 
-          <div class="actions">
-            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.guideDismiss }}</button>
-            <button type="button" class="btn primary" @click="dismiss">{{ pwaUi.guideConfirm }}</button>
-          </div>
-
-          <div class="ios-pointer" aria-hidden="true" />
-        </template>
-
-        <!-- راهنمای دستی: Firefox / Safari دسکتاپ (بدون BIP) -->
-        <template v-else-if="isDesktopGuide">
-          <div class="text">
-            <strong :id="bannerTitleId">{{ pwaUi.manualGuideTitle }}</strong>
-            <p>{{ pwaUi.manualGuideIntro }}</p>
-
-            <ol class="guide-steps" aria-label="مراحل نصب">
+            <!-- مراحل دسکتاپ / اندروید بدون BIP -->
+            <ol v-else class="guide-steps" aria-label="مراحل نصب">
               <li>
                 <span class="step-badge" aria-hidden="true">1</span>
                 <span>از منوی مرورگر گزینه <b>Install app</b> یا <b>نصب برنامه</b> را پیدا کنید</span>
@@ -91,35 +79,31 @@
                 <span>نصب را تأیید کنید تا میانبر روی دستگاه ساخته شود</span>
               </li>
             </ol>
-          </div>
+          </template>
+        </div>
 
-          <div class="actions">
-            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.guideDismiss }}</button>
-            <button type="button" class="btn primary" @click="dismiss">{{ pwaUi.guideConfirm }}</button>
-          </div>
-        </template>
+        <div class="actions">
+          <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.installDismiss }}</button>
+          <button type="button" class="btn primary" @click="onPrimary">
+            {{ primaryLabel }}
+          </button>
+        </div>
 
-        <!-- بنر native فقط وقتی مرورگر beforeinstallprompt داده -->
-        <template v-else>
-          <div class="text">
-            <strong id="install-title">{{ pwaUi.installTitle }}</strong>
-            <p>{{ pwaUi.installBody }}</p>
-          </div>
-
-          <div class="actions">
-            <button type="button" class="btn ghost" @click="dismiss">{{ pwaUi.installDismiss }}</button>
-            <button type="button" class="btn primary" @click="install">{{ pwaUi.installAccept }}</button>
-          </div>
-        </template>
+        <div v-if="surface === 'ios' && stepsVisible" class="ios-pointer" aria-hidden="true" />
       </aside>
     </Transition>
   </Teleport>
 </template>
 
 <script setup>
+/**
+ * رفتار یکسان در همه مرورگرهای وب (نه Capacitor):
+ * - اگر نصب نیست → همین بنر با عنوان/متن/دکمه‌های یکسان
+ * - دکمه نصب: BIP باشد → دیالوگ مرورگر؛ نباشد → نمایش مراحل
+ * Capacitor از بیرون با isPwaCapabilityEnabled خاموش است.
+ */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
-  browserNeedsManualInstallGuide,
   consumeEarlyDeferredPrompt,
   getInstallSurface,
   incrementDismissLoadCount,
@@ -135,26 +119,23 @@ import { appConfig } from '@/services/appConfig.service'
 import { needRefresh } from '@/pwa/updateState'
 import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 
-const MANUAL_GUIDE_DELAY_MS = pwaInstallPolicy.manualGuideDelayMs
+const SHOW_DELAY_MS = pwaInstallPolicy.manualGuideDelayMs
 
 const appIcon = APP_ICON_192
 const visible = ref(false)
-const isGuide = ref(false)
+const stepsVisible = ref(false)
 
-/** 'android' | 'ios' | 'desktop' */
 const surface = getInstallSurface()
 const onIosSafari = isIosSafari()
-const needsManualGuide = browserNeedsManualInstallGuide()
 
 const pwaUi = computed(() => appConfig.value.pwaUi)
-const isIosGuide = computed(() => isGuide.value && surface === 'ios')
-const isDesktopGuide = computed(() => isGuide.value && surface === 'desktop' && needsManualGuide)
-const needsSafariHint = computed(() => isIosGuide.value && !onIosSafari)
-const bannerTitleId = computed(() => (isGuide.value ? 'guide-install-title' : 'install-title'))
+const primaryLabel = computed(() =>
+  stepsVisible.value ? pwaUi.value.guideConfirm : pwaUi.value.installAccept,
+)
 
 let deferredPrompt = null
 let alreadyInstalled = false
-let manualGuideTimer = null
+let showTimer = null
 let listenersBound = false
 
 const standaloneMedia = window.matchMedia('(display-mode: standalone)')
@@ -166,75 +147,43 @@ function canShowBanner() {
 
 function hideBanner() {
   visible.value = false
-  isGuide.value = false
+  stepsVisible.value = false
 }
 
-/**
- * منبع حقیقت نصب = API پلتفرم (standalone / getInstalledRelatedApps)
- */
 async function refreshInstalledState() {
   alreadyInstalled = await isPwaAlreadyInstalled()
   if (alreadyInstalled) {
     deferredPrompt = null
+    clearShowTimer()
     hideBanner()
   }
   return alreadyInstalled
 }
 
-async function showNativeInstallBanner() {
-  if (await refreshInstalledState()) return
-  if (!canShowBanner() || !deferredPrompt) {
-    hideBanner()
-    return
-  }
-  isGuide.value = false
-  visible.value = true
-}
-
-/** راهنمای iOS فقط وقتی داخل اپ نیستیم */
-async function showIosGuideBanner() {
-  if (surface !== 'ios') return
+/** نمایش بنر یکسان — همه مرورگرهای وب */
+async function showInstallBanner() {
   if (await refreshInstalledState()) return
   if (!canShowBanner()) {
     hideBanner()
     return
   }
-  isGuide.value = true
   visible.value = true
 }
 
-/** راهنمای Firefox / Safari — فقط مرورگر بدون BIP */
-async function showDesktopManualGuideBanner() {
-  if (surface !== 'desktop' || !needsManualGuide) return
-  if (deferredPrompt) return
-  if (await refreshInstalledState()) return
-  if (!canShowBanner()) {
-    hideBanner()
-    return
-  }
-  isGuide.value = true
-  visible.value = true
+function clearShowTimer() {
+  if (showTimer == null) return
+  window.clearTimeout(showTimer)
+  showTimer = null
 }
 
-function clearManualGuideTimer() {
-  if (manualGuideTimer == null) return
-  window.clearTimeout(manualGuideTimer)
-  manualGuideTimer = null
+function scheduleShowBanner() {
+  clearShowTimer()
+  showTimer = window.setTimeout(() => {
+    showTimer = null
+    showInstallBanner()
+  }, SHOW_DELAY_MS)
 }
 
-function scheduleDesktopManualGuide() {
-  if (surface !== 'desktop' || !needsManualGuide) return
-  clearManualGuideTimer()
-  manualGuideTimer = window.setTimeout(() => {
-    manualGuideTimer = null
-    if (deferredPrompt || visible.value) return
-    showDesktopManualGuideBanner()
-  }, MANUAL_GUIDE_DELAY_MS)
-}
-
-/**
- * قبلinstallprompt = خود مرورگر می‌گوید «هنوز نصب نیست و قابل نصب است».
- */
 function applyDeferredPrompt(event) {
   if (!event) return false
   if (isStandaloneMode()) {
@@ -244,12 +193,9 @@ function applyDeferredPrompt(event) {
     return false
   }
   deferredPrompt = event
-  clearManualGuideTimer()
-  if (!canShowBanner()) {
-    hideBanner()
-    return true
-  }
-  isGuide.value = false
+  if (!canShowBanner()) return true
+  // BIP آمد → بنر یکسان را نشان بده (بدون مراحل)
+  stepsVisible.value = false
   visible.value = true
   return true
 }
@@ -263,14 +209,14 @@ function onAppInstalled() {
   alreadyInstalled = true
   markPwaInstalled()
   deferredPrompt = null
-  clearManualGuideTimer()
+  clearShowTimer()
   hideBanner()
 }
 
 function onDisplayModeChange() {
   if (isStandaloneMode()) {
     alreadyInstalled = true
-    clearManualGuideTimer()
+    clearShowTimer()
     hideBanner()
   }
 }
@@ -283,37 +229,38 @@ async function onVisibilityOrPageshow() {
 function dismiss() {
   hideBanner()
   setLoadsSinceDismiss(0)
-  clearManualGuideTimer()
+  clearShowTimer()
 }
 
-async function install() {
-  if (!deferredPrompt) return
-
-  deferredPrompt.prompt()
-  const choice = await deferredPrompt.userChoice
-  deferredPrompt = null
-  hideBanner()
-
-  if (choice?.outcome === 'accepted') {
-    alreadyInstalled = true
-    markPwaInstalled()
-  } else {
-    setLoadsSinceDismiss(0)
+async function onPrimary() {
+  // ۱) کروم/اج/اندروید با BIP → دیالوگ نصب مرورگر
+  if (deferredPrompt) {
+    deferredPrompt.prompt()
+    const choice = await deferredPrompt.userChoice
+    deferredPrompt = null
+    hideBanner()
+    if (choice?.outcome === 'accepted') {
+      alreadyInstalled = true
+      markPwaInstalled()
+    } else {
+      setLoadsSinceDismiss(0)
+    }
+    return
   }
+
+  // ۲) بدون BIP → همان بنر، فقط مراحل را باز کن؛ بار دوم = متوجه شدم
+  if (!stepsVisible.value) {
+    stepsVisible.value = true
+    return
+  }
+  dismiss()
 }
 
 async function restoreBannerAfterUpdate() {
   if (await refreshInstalledState()) return
-  if (deferredPrompt) {
-    await showNativeInstallBanner()
-    return
-  }
-  if (surface === 'ios') {
-    await showIosGuideBanner()
-    return
-  }
-  if (needsManualGuide) {
-    await showDesktopManualGuideBanner()
+  if (canShowBanner()) {
+    stepsVisible.value = false
+    visible.value = true
   }
 }
 
@@ -350,40 +297,23 @@ watch(needRefresh, (updating) => {
 onMounted(async () => {
   bindInstallListeners()
 
-  // ۱) API پلتفرم: نصب است؟
   if (await refreshInstalledState()) return
 
-  // ۲) BIP = مرورگر می‌گوید قابل نصب است → بنر native
-  const gotEarlyPrompt = applyDeferredPrompt(consumeEarlyDeferredPrompt())
-  if (gotEarlyPrompt && deferredPrompt) {
-    incrementDismissLoadCount()
-    return
-  }
-
+  applyDeferredPrompt(consumeEarlyDeferredPrompt())
   incrementDismissLoadCount()
 
+  if (!canShowBanner()) return
+
+  // BIP زود آمده → همان لحظه؛ وگرنه کمی صبر تا BIP دیررس، بعد بنر یکسان برای همه
   if (deferredPrompt) {
-    await showNativeInstallBanner()
+    visible.value = true
     return
   }
-
-  // ۳) iOS: BIP ندارد → راهنمای Share
-  if (surface === 'ios') {
-    await showIosGuideBanner()
-    return
-  }
-
-  // ۴) Firefox / Safari دسکتاپ: راهنمای نصب از منوی مرورگر
-  if (needsManualGuide) {
-    scheduleDesktopManualGuide()
-    return
-  }
-
-  // ۵) کروم/اج/اندروید بدون BIP فعلاً → صبر برای BIP (بنر دستی نه)
+  scheduleShowBanner()
 })
 
 onUnmounted(() => {
-  clearManualGuideTimer()
+  clearShowTimer()
   unbindInstallListeners()
 })
 </script>
@@ -413,7 +343,7 @@ onUnmounted(() => {
   pointer-events: auto;
 }
 
-.install-banner.is-guide {
+.install-banner.is-steps {
   align-items: flex-start;
   padding-bottom: 1.45rem;
   background: linear-gradient(165deg, #f0f9ff 0%, #ffffff 42%, #f8fafc 100%);
@@ -450,8 +380,15 @@ onUnmounted(() => {
   line-height: 1.55;
 }
 
-.text p b {
-  color: #0369a1;
+.steps-intro {
+  margin-top: 0.65rem !important;
+  color: #0369a1 !important;
+  font-weight: 600;
+}
+
+.text p b,
+.guide-steps b {
+  color: #0c4a6e;
   font-weight: 700;
 }
 
@@ -470,11 +407,6 @@ onUnmounted(() => {
   color: #334155;
   font-size: 0.86rem;
   line-height: 1.5;
-}
-
-.guide-steps b {
-  color: #0c4a6e;
-  font-weight: 700;
 }
 
 .fa-hint {
@@ -506,7 +438,7 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 
-.install-banner:not(.is-guide) .actions {
+.install-banner:not(.is-steps) .actions {
   width: auto;
 }
 
@@ -544,10 +476,6 @@ onUnmounted(() => {
   box-shadow: 2px 2px 4px rgba(14, 165, 233, 0.08);
 }
 
-.install-banner.is-ios-guide {
-  position: fixed;
-}
-
 .banner-enter-active,
 .banner-leave-active {
   transition: all 0.28s ease;
@@ -560,7 +488,7 @@ onUnmounted(() => {
 }
 
 @media (min-width: 520px) {
-  .install-banner.is-guide .actions {
+  .install-banner.is-steps .actions {
     width: auto;
     margin-top: 0.15rem;
   }

@@ -1,22 +1,10 @@
-import {
-  browserNeedsManualInstallGuide,
-  getInstallSurface,
-  isAndroidDevice,
-  isIosDevice,
-  isIosSafari,
-} from '@/utils/device'
+import { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari } from '@/utils/device'
 import { pwaInstallPolicy } from '@settings/pwa/install.policy.js'
 
 const DISMISS_LOADS_KEY = pwaInstallPolicy.dismissLoadsStorageKey
 const SHOW_EVERY_N_LOADS = pwaInstallPolicy.showEveryNLoads
 
-export {
-  browserNeedsManualInstallGuide,
-  getInstallSurface,
-  isAndroidDevice,
-  isIosDevice,
-  isIosSafari,
-}
+export { getInstallSurface, isAndroidDevice, isIosDevice, isIosSafari }
 
 /** رویداد beforeinstallprompt که قبل از mount اپ ممکن است بیاید */
 let earlyDeferredPrompt = null
@@ -89,12 +77,9 @@ export async function hasInstalledRelatedWebApp() {
 }
 
 /**
- * تشخیص نصب فقط با API پلتفرم:
- * 1) display-mode standalone (داخل اپ باز شده)
- * 2) getInstalledRelatedApps (کروم/اج/اندروید)
- *
- * beforeinstallprompt جداگانه یعنی «قابل نصب است» — آن را اینجا true برنمی‌گردانیم.
- * فایرفاکس هیچ‌کدام را برای نصب کروم گزارش نمی‌دهد → نباید بنر ساختگی نشان دهیم.
+ * تشخیص نصب با API پلتفرم (همه مرورگرهای وب یک منطق):
+ * 1) display-mode standalone
+ * 2) getInstalledRelatedApps (اگر مرورگر پشتیبانی کند)
  */
 export async function isPwaAlreadyInstalled() {
   if (isStandaloneMode()) return true
@@ -102,18 +87,9 @@ export async function isPwaAlreadyInstalled() {
   return false
 }
 
-/** @deprecated — فقط برای سازگاری؛ منبع حقیقت نیست */
-export function hasInstalledFlag() {
-  return false
-}
-
-/** بعد از appinstalled / قبول نصب — فقط شمارندهٔ dismiss را ریست کن */
+/** بعد از appinstalled / قبول نصب — شمارندهٔ dismiss را ریست کن */
 export function markPwaInstalled() {
   localStorage.removeItem(DISMISS_LOADS_KEY)
-}
-
-export function clearPwaInstalledFlag() {
-  // عمداً خالی: تشخیص نصب از storage نیست
 }
 
 export function getLoadsSinceDismiss() {
