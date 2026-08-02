@@ -697,7 +697,7 @@ h1 {
 }
 
 .switch input:checked + .slider {
-  background: #0ea5e9;
+  background: #f29220;
 }
 
 .switch input:checked + .slider::before {
@@ -894,7 +894,7 @@ h1 {
 }
 
 .btn.primary {
-  background: #0ea5e9;
+  background: #f29220;
   color: #fff;
 }
 

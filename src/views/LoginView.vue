@@ -359,8 +359,8 @@ onUnmounted(() => {
   place-items: center;
   padding: 1rem;
   background:
-    radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.18), transparent 50%),
-    radial-gradient(ellipse at 80% 90%, rgba(99, 102, 241, 0.16), transparent 45%),
+    radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.22), transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(217, 119, 6, 0.18), transparent 45%),
     #0f172a;
 }
 
@@ -377,7 +377,7 @@ onUnmounted(() => {
 }
 
 .wifi-icon {
-  color: #38bdf8;
+  color: #f29220;
   display: inline-flex;
 }
 
@@ -438,9 +438,9 @@ onUnmounted(() => {
   width: 104px;
   height: 104px;
   border-radius: 50%;
-  border: 1px solid rgba(56, 189, 248, 0.45);
+  border: 1px solid rgba(242, 146, 32, 0.45);
   background: rgba(14, 165, 233, 0.14);
-  color: #7dd3fc;
+  color: #fdba74;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -450,7 +450,7 @@ onUnmounted(() => {
   display: grid;
   justify-items: center;
   gap: 0.5rem;
-  color: #e0f2fe;
+  color: #ffedd5;
   font-weight: 600;
 }
 
@@ -459,7 +459,7 @@ onUnmounted(() => {
   height: 42px;
   border-radius: 50%;
   border: 3px solid rgba(125, 211, 252, 0.25);
-  border-top-color: #38bdf8;
+  border-top-color: #f29220;
   animation: spin 0.8s linear infinite;
 }
 
@@ -498,8 +498,8 @@ onUnmounted(() => {
 }
 
 .field input:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  border-color: #f29220;
+  box-shadow: 0 0 0 3px rgba(242, 146, 32, 0.2);
 }
 
 .btn {
@@ -512,7 +512,7 @@ onUnmounted(() => {
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  background: linear-gradient(135deg, #f29220, #d97706);
   color: #0f172a;
 }
 

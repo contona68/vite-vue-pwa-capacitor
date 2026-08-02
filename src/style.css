@@ -1,9 +1,21 @@
 :root {
+  --brand: #f29220;
+  --brand-dark: #d97706;
+  --brand-light: #fdba74;
+  --brand-soft: rgba(242, 146, 32, 0.22);
+  --brand-soft-2: rgba(217, 119, 6, 0.18);
+  --brand-muted: #ffedd5;
+  --brand-deep: #c2410c;
+  --surface: #0f172a;
+  --surface-elevated: rgba(15, 23, 42, 0.72);
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+
   font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #0f172a;
-  background-color: #0f172a;
+  color: var(--surface);
+  background-color: var(--surface);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

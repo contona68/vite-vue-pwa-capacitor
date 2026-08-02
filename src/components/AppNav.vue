@@ -107,7 +107,7 @@ async function expireTokenForTest() {
 
 .brand {
   font-weight: 700;
-  color: #38bdf8;
+  color: #f29220;
   text-decoration: none;
 }
 

@@ -461,8 +461,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 0.55rem;
-  background: #e0f2fe;
-  color: #0284c7;
+  background: #ffedd5;
+  color: #c2410c;
   border: 1px solid #bae6fd;
   font-size: 0.78rem;
   font-weight: 700;
@@ -490,7 +490,7 @@ onUnmounted(() => {
 }
 
 .btn.primary {
-  background: #0ea5e9;
+  background: #f29220;
   color: #ffffff;
 }
 

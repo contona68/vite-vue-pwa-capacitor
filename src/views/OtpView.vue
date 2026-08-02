@@ -310,8 +310,8 @@ onUnmounted(() => {
   place-items: center;
   padding: 1rem;
   background:
-    radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.18), transparent 50%),
-    radial-gradient(ellipse at 80% 90%, rgba(99, 102, 241, 0.16), transparent 45%),
+    radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.22), transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(217, 119, 6, 0.18), transparent 45%),
     #0f172a;
 }
 
@@ -378,8 +378,8 @@ onUnmounted(() => {
 }
 
 .otp-box:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  border-color: #f29220;
+  box-shadow: 0 0 0 3px rgba(242, 146, 32, 0.2);
 }
 
 .btn {
@@ -392,7 +392,7 @@ onUnmounted(() => {
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  background: linear-gradient(135deg, #f29220, #d97706);
   color: #0f172a;
 }
 
