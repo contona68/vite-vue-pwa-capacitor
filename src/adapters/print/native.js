@@ -1,6 +1,6 @@
 /**
  * Print — native (ViewApp PrintManager)
- * اگر بریج native نباشد، به window.print به‌عنوان fallback می‌رود.
+ * اگر PrintManager روی گوشی کار نکند → fallback به window.print (مثل وب).
  */
 
 import { getCapacitorPlugin } from '@/adapters/bridge'
@@ -17,27 +17,45 @@ function getNativeApi() {
 }
 
 export function isPrintSupported() {
+  if (webPrint.isPrintSupported()) return true
   const api = getNativeApi()
   if (typeof api?.print === 'function') return true
   const plugin = getCapacitorPlugin(capacitorPluginNames.print)
-  if (plugin && typeof plugin.print === 'function') return true
-  return webPrint.isPrintSupported()
+  return Boolean(plugin && typeof plugin.print === 'function')
 }
 
 /**
  * @param {{ jobName?: string }} [options]
  */
 export async function printCurrentDocument(options = {}) {
+  const jobName = options.jobName || 'HyperYek'
   const api = getNativeApi()
+
   if (typeof api?.print === 'function') {
-    await api.print({ jobName: options.jobName || 'HyperYek' })
-    return { ok: true, provider: 'native' }
+    try {
+      await api.print({ jobName })
+      return { ok: true, provider: 'native' }
+    } catch (error) {
+      console.warn('[Print:native] PrintManager failed, falling back to window.print:', error)
+      if (webPrint.isPrintSupported()) {
+        return webPrint.printCurrentDocument(options)
+      }
+      throw error
+    }
   }
 
   const plugin = getCapacitorPlugin(capacitorPluginNames.print)
   if (plugin && typeof plugin.print === 'function') {
-    await plugin.print({ jobName: options.jobName || 'HyperYek' })
-    return { ok: true, provider: 'native-plugin' }
+    try {
+      await plugin.print({ jobName })
+      return { ok: true, provider: 'native-plugin' }
+    } catch (error) {
+      console.warn('[Print:native] plugin print failed, falling back to window.print:', error)
+      if (webPrint.isPrintSupported()) {
+        return webPrint.printCurrentDocument(options)
+      }
+      throw error
+    }
   }
 
   return webPrint.printCurrentDocument(options)
@@ -45,6 +63,6 @@ export async function printCurrentDocument(options = {}) {
 
 export function getPrintProviderLabel() {
   const api = getNativeApi()
-  if (typeof api?.print === 'function') return 'Native (PrintManager)'
-  return 'Native → fallback وب'
+  if (typeof api?.print === 'function') return 'Native → fallback وب'
+  return 'وب (window.print)'
 }

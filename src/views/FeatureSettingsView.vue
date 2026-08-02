@@ -194,7 +194,7 @@
             <span class="camera-provider">منبع: {{ barcodeProviderLabel }}</span>
           </div>
           <p class="camera-hint">
-            با «شروع اسکن» اسکنر native اندروید باز می‌شود و مقدار خوانده‌شده همین‌جا نمایش داده می‌شود.
+            با «شروع اسکن» اسکنر native اندروید باز می‌شود. اگر دستگاه پشتیبانی نکند، پیام مناسب نمایش داده می‌شود.
           </p>
 
           <div class="camera-media-row">
