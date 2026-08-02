@@ -66,7 +66,7 @@ export const nativePlatformPolicy = {
   },
   sms: { provider: 'native' },
   biometric: { provider: 'native' },
-  splash: { provider: 'native', hideHtmlSplash: true },
+  splash: { provider: 'native', hideHtmlSplash: false },
   /** وضعیت شبکه از ViewApp می‌آید؛ UI آفلاین را خود وب نشان می‌دهد */
   connectivity: { provider: 'native', showWebUi: true },
   /**

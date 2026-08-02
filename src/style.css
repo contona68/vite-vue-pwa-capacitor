@@ -1,20 +1,20 @@
 :root {
   --brand: #f29220;
-  --brand-dark: #d97706;
+  --brand-dark: #ea8c1a;
   --brand-light: #fdba74;
-  --brand-soft: rgba(242, 146, 32, 0.22);
-  --brand-soft-2: rgba(217, 119, 6, 0.18);
+  --brand-soft: rgba(242, 146, 32, 0.16);
+  --brand-soft-2: rgba(253, 186, 116, 0.35);
   --brand-muted: #ffedd5;
-  --brand-deep: #c2410c;
-  --surface: #2b160c;
-  --surface-elevated: rgba(61, 30, 12, 0.78);
-  --text: #fff7ed;
-  --text-muted: #fdba74;
+  --brand-deep: #f29220;
+  --surface: #fff8f0;
+  --surface-elevated: rgba(255, 255, 255, 0.78);
+  --text: #7c2d12;
+  --text-muted: #b45309;
 
   font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: var(--surface);
+  color: var(--text);
   background-color: var(--surface);
   font-synthesis: none;
   text-rendering: optimizeLegibility;

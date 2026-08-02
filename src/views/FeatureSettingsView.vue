@@ -762,7 +762,7 @@ h1 {
   aspect-ratio: 4 / 3;
   border-radius: 0.55rem;
   overflow: hidden;
-  background: #2b160c;
+  background: #44403c;
 }
 
 .camera-preview {
@@ -770,7 +770,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #2b160c;
+  background: #44403c;
   opacity: 0;
 }
 

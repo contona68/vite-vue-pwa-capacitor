@@ -1,6 +1,6 @@
 /**
- * Splash — native (Capacitor SplashScreen)
- * اسپلش HTML وب مخفی می‌شود تا با splash native تداخل نداشته باشد.
+ * Splash — native (Capacitor SplashScreen / ViewApp)
+ * اسپلش HTML را تا hide نگه می‌داریم تا بعد از خروج اسپلش سیستم صفحه سفید دیده نشود.
  */
 
 import { getCapacitorPlugin } from '@/adapters/bridge'
@@ -9,10 +9,9 @@ import { splashSettings } from '@settings/splash/defaults.js'
 
 export function prepareSplash() {
   const splash = document.getElementById(splashSettings.bootSplashElementId)
-  if (splash) {
-    splash.classList.add('hidden')
-    splash.remove()
-  }
+  if (!splash) return
+  // سفید → کدویی (همراه با CSS داخل index.html)
+  splash.classList.add('is-pumpkin')
 }
 
 export async function hideSplash() {
@@ -20,20 +19,19 @@ export async function hideSplash() {
   if (plugin && typeof plugin.hide === 'function') {
     try {
       await plugin.hide()
-      return
     } catch (error) {
       console.warn('[Splash:native] hide failed:', error)
     }
   }
 
-  // fallback
   const splash = document.getElementById(splashSettings.bootSplashElementId)
-  if (splash) {
-    splash.classList.add('hidden')
+  if (!splash) return
+  splash.classList.add('hidden')
+  window.setTimeout(() => {
     splash.remove()
-  }
+  }, 320)
 }
 
 export function shouldUseHtmlSplash() {
-  return false
+  return true
 }

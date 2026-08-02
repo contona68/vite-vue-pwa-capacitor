@@ -29,15 +29,24 @@
     </noscript>
     <title>هایپریک</title>
     <style>
+      html, body {
+        margin: 0;
+        background: #ffffff;
+      }
       #boot-splash {
         position: fixed;
         inset: 0;
         z-index: 10000;
         display: grid;
         place-items: center;
-        background: #fff8f0;
-        color: #0f172a;
+        background: #ffffff;
+        color: #3d3d3d;
         font-family: Vazirmatn, Tahoma, sans-serif;
+        transition: background-color 0.45s ease, color 0.45s ease;
+      }
+      #boot-splash.is-pumpkin {
+        background: #fdba74;
+        color: #7c2d12;
       }
       #boot-splash img {
         width: 96px;
@@ -51,7 +60,7 @@
       #boot-splash.hidden {
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.3s ease, background-color 0.45s ease, color 0.45s ease;
       }
     </style>
   </head>
@@ -65,17 +74,27 @@
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
     <script>
+      (function () {
+        var splash = document.getElementById('boot-splash')
+        if (!splash) return
+        // White first paint → pumpkin while assets load
+        window.setTimeout(function () {
+          if (document.getElementById('boot-splash')) {
+            splash.classList.add('is-pumpkin')
+          }
+        }, 180)
+      })()
       window.addEventListener('load', function () {
         var splash = document.getElementById('boot-splash')
         if (!splash) return
-        // در native، adapter اسپلش HTML را زود حذف می‌کند؛ این فقط fallback وب است
+        // در native، adapter اسپلش HTML را مدیریت می‌کند؛ این فقط fallback وب است
         setTimeout(function () {
           if (!document.getElementById('boot-splash')) return
           splash.classList.add('hidden')
           setTimeout(function () {
             splash.remove()
           }, 320)
-        }, 700)
+        }, 900)
       })
     </script>
   </body>

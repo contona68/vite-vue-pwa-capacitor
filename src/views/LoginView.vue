@@ -359,9 +359,9 @@ onUnmounted(() => {
   place-items: center;
   padding: 1rem;
   background:
-    radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.22), transparent 50%),
-    radial-gradient(ellipse at 80% 90%, rgba(217, 119, 6, 0.18), transparent 45%),
-    #2b160c;
+    radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.18), transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(253, 186, 116, 0.28), transparent 50%),
+    #fff8f0;
 }
 
 .connection-bar {
@@ -398,10 +398,10 @@ onUnmounted(() => {
   width: min(100%, 420px);
   padding: 1.5rem 1.25rem;
   border-radius: 1.25rem;
-  background: rgba(61, 30, 12, 0.78);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(242, 146, 32, 0.18);
   backdrop-filter: blur(10px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 16px 40px rgba(242, 146, 32, 0.12);
 }
 
 .brand {
@@ -419,12 +419,12 @@ onUnmounted(() => {
 .brand h1 {
   margin: 0;
   font-size: 1.45rem;
-  color: #f8fafc;
+  color: #9a3412;
 }
 
 .subtitle {
   margin: 0.45rem 0 0;
-  color: #94a3b8;
+  color: #b45309;
   font-size: 0.88rem;
 }
 
@@ -438,9 +438,9 @@ onUnmounted(() => {
   width: 104px;
   height: 104px;
   border-radius: 50%;
-  border: 1px solid rgba(242, 146, 32, 0.45);
-  background: rgba(14, 165, 233, 0.14);
-  color: #fdba74;
+  border: 1px solid rgba(242, 146, 32, 0.35);
+  background: rgba(255, 237, 213, 0.7);
+  color: #ea8c1a;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -450,7 +450,7 @@ onUnmounted(() => {
   display: grid;
   justify-items: center;
   gap: 0.5rem;
-  color: #ffedd5;
+  color: #9a3412;
   font-weight: 600;
 }
 
@@ -458,7 +458,7 @@ onUnmounted(() => {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 3px solid rgba(125, 211, 252, 0.25);
+  border: 3px solid rgba(253, 186, 116, 0.35);
   border-top-color: #f29220;
   animation: spin 0.8s linear infinite;
 }
@@ -466,7 +466,7 @@ onUnmounted(() => {
 .skip-link {
   border: 0;
   background: transparent;
-  color: #64748b;
+  color: #b45309;
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
@@ -482,15 +482,15 @@ onUnmounted(() => {
 .field {
   display: grid;
   gap: 0.35rem;
-  color: #cbd5e1;
+  color: #9a3412;
   font-size: 0.9rem;
 }
 
 .field input {
   width: 100%;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(2, 6, 23, 0.55);
-  color: #f8fafc;
+  border: 1px solid rgba(242, 146, 32, 0.28);
+  background: rgba(255, 255, 255, 0.85);
+  color: #7c2d12;
   border-radius: 0.75rem;
   padding: 0.7rem 0.85rem;
   font: inherit;
@@ -512,7 +512,7 @@ onUnmounted(() => {
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, #f29220, #d97706);
+  background: linear-gradient(135deg, #fdba74, #f29220);
   color: #7c2d12;
 }
 
@@ -523,7 +523,7 @@ onUnmounted(() => {
 
 .error {
   margin: 0;
-  color: #fda4af;
+  color: #e11d48;
   font-size: 0.88rem;
   text-align: center;
 }
@@ -535,16 +535,16 @@ onUnmounted(() => {
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgba(2, 6, 23, 0.65);
+  background: rgba(124, 45, 18, 0.28);
 }
 
 .modal-card {
   width: min(100%, 360px);
   padding: 1.15rem 1.1rem;
   border-radius: 1rem;
-  background: #2b160c;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(242, 146, 32, 0.22);
+  color: #7c2d12;
   display: grid;
   gap: 0.75rem;
 }
@@ -552,14 +552,14 @@ onUnmounted(() => {
 .modal-card h2 {
   margin: 0;
   font-size: 1.05rem;
-  color: #f8fafc;
+  color: #9a3412;
 }
 
 .modal-card p {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.6;
-  color: #94a3b8;
+  color: #b45309;
 }
 
 .modal-card .btn {

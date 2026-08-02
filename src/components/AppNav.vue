@@ -95,7 +95,7 @@ async function expireTokenForTest() {
   gap: 1rem;
   padding: 0.9rem 1.25rem;
   padding-top: calc(0.9rem + env(safe-area-inset-top, 0px));
-  background: #c2410c;
+  background: #f29220;
   color: #fff7ed;
 }
 

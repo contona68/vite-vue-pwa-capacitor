@@ -310,17 +310,17 @@ onUnmounted(() => {
   place-items: center;
   padding: 1rem;
   background:
-    radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.22), transparent 50%),
-    radial-gradient(ellipse at 80% 90%, rgba(217, 119, 6, 0.18), transparent 45%),
-    #2b160c;
+    radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.18), transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(253, 186, 116, 0.28), transparent 50%),
+    #fff8f0;
 }
 
 .login-card {
   width: min(100%, 420px);
   padding: 1.5rem 1.25rem;
   border-radius: 1.25rem;
-  background: rgba(61, 30, 12, 0.78);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(242, 146, 32, 0.18);
 }
 
 .brand {
@@ -338,17 +338,17 @@ onUnmounted(() => {
 .brand h1 {
   margin: 0;
   font-size: 1.45rem;
-  color: #f8fafc;
+  color: #9a3412;
 }
 
 .subtitle {
   margin: 0.4rem 0 0;
-  color: #94a3b8;
+  color: #b45309;
   font-size: 0.88rem;
 }
 
 .subtitle strong {
-  color: #e2e8f0;
+  color: #9a3412;
 }
 
 .login-form {
@@ -366,9 +366,9 @@ onUnmounted(() => {
 .otp-box {
   width: 100%;
   aspect-ratio: 1;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(2, 6, 23, 0.55);
-  color: #f8fafc;
+  border: 1px solid rgba(242, 146, 32, 0.28);
+  background: rgba(255, 255, 255, 0.85);
+  color: #7c2d12;
   border-radius: 0.7rem;
   font: inherit;
   font-size: 1.25rem;
@@ -392,14 +392,14 @@ onUnmounted(() => {
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, #f29220, #d97706);
+  background: linear-gradient(135deg, #fdba74, #f29220);
   color: #7c2d12;
 }
 
 .btn.ghost {
   background: transparent;
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #b45309;
+  border: 1px solid rgba(242, 146, 32, 0.28);
 }
 
 .btn:disabled {
@@ -409,7 +409,7 @@ onUnmounted(() => {
 
 .error {
   margin: 0;
-  color: #fda4af;
+  color: #e11d48;
   font-size: 0.88rem;
 }
 </style>
