@@ -7,7 +7,7 @@
  * @param {string | symbol | null | undefined} routeName
  */
 export function isBackableRoute(routeName) {
-  return routeName === 'otp'
+  return routeName === 'otp' || routeName === 'print'
 }
 
 /**
@@ -16,6 +16,7 @@ export function isBackableRoute(routeName) {
  */
 export function resolveFallbackRouteName(routeName) {
   if (routeName === 'otp') return 'login'
+  if (routeName === 'print') return 'settings'
   return null
 }
 

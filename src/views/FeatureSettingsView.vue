@@ -53,6 +53,27 @@
           </button>
         </div>
 
+        <section class="camera-panel" aria-labelledby="print-panel-title">
+          <div class="camera-panel-head">
+            <h2 id="print-panel-title">چاپ</h2>
+            <span class="camera-provider">منبع: {{ printProviderLabel }}</span>
+          </div>
+          <p class="camera-hint">
+            یک برگهٔ پیش‌فرض باز می‌شود و دیالوگ چاپ سیستم (وب یا PrintManager اندروید) نمایش داده می‌شود.
+          </p>
+          <div class="camera-actions">
+            <button
+              type="button"
+              class="btn primary"
+              :disabled="printBusy"
+              @click="onOpenPrint"
+            >
+              {{ printBusy ? 'در حال باز شدن...' : 'چاپ صفحه پیش‌فرض' }}
+            </button>
+          </div>
+          <p v-if="printError" class="error" role="alert">{{ printError }}</p>
+        </section>
+
         <!-- تست دوربین زیر دکمه‌های ذخیره -->
         <section v-if="draftFeatures.camera" class="camera-panel" aria-labelledby="camera-panel-title">
           <div class="camera-panel-head">
@@ -264,6 +285,28 @@ import {
   stopBarcodeScan,
 } from '@/services/barcode.service'
 import { isNativePlatform } from '@/platform/env'
+import { useRouter } from 'vue-router'
+import {
+  getPrintProviderLabel,
+  openDefaultPrintPage,
+} from '@/modules/print'
+
+const router = useRouter()
+const printBusy = ref(false)
+const printError = ref('')
+const printProviderLabel = getPrintProviderLabel()
+
+async function onOpenPrint() {
+  printError.value = ''
+  printBusy.value = true
+  try {
+    await openDefaultPrintPage(router)
+  } catch (error) {
+    printError.value = error?.message || 'باز کردن صفحه چاپ ناموفق بود.'
+  } finally {
+    printBusy.value = false
+  }
+}
 
 const featureItems = [
   {

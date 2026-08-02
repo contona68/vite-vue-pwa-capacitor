@@ -29,6 +29,12 @@ const routes = [
     component: () => import('@/views/FeatureSettingsView.vue'),
     meta: { title: 'تنظیمات', requiresAuth: true },
   },
+  {
+    path: '/print',
+    name: 'print',
+    component: () => import('@/views/PrintPreviewView.vue'),
+    meta: { title: 'چاپ', requiresAuth: true },
+  },
   // مسیرهای قدیمی
   { path: '/home', redirect: { name: 'settings' } },
   { path: '/about', redirect: { name: 'settings' } },

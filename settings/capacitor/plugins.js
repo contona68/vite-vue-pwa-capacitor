@@ -6,4 +6,5 @@ export const capacitorPluginNames = {
   smsRetriever: ['SmsRetriever', 'SMSRetriever', 'SmsReader'],
   app: 'App',
   camera: 'Camera',
+  print: 'Print',
 }
