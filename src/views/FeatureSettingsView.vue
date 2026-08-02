@@ -194,7 +194,7 @@
             <span class="camera-provider">منبع: {{ barcodeProviderLabel }}</span>
           </div>
           <p class="camera-hint">
-            پیش‌نمایش زنده دوربین را نشان می‌دهد و بارکدهای تشخیص‌داده‌شده را ثبت می‌کند.
+            با «شروع اسکن» اسکنر native اندروید باز می‌شود و مقدار خوانده‌شده همین‌جا نمایش داده می‌شود.
           </p>
 
           <div class="camera-media-row">
@@ -332,7 +332,7 @@ const featureItems = [
   {
     key: 'barcode',
     title: 'بارکدخوان',
-    description: 'اسکن بارکد با دوربین دستگاه (فعلاً فقط در اپ native).',
+    description: 'اسکن بارکد با اسکنر native اندروید (فعلاً فقط در اپ).',
   },
 ]
 
@@ -532,12 +532,8 @@ async function onOpenOrResetBarcode() {
   barcodeBusy.value = true
   try {
     const videoElement = await waitForBarcodeVideo()
-    if (!videoElement) {
-      throw new Error('پیش‌نمایش بارکدخوان هنوز آماده نیست. دوباره تلاش کنید.')
-    }
-
     const options = {
-      videoElement,
+      videoElement: videoElement || undefined,
       onDetected: (result) => {
         if (!result?.rawValue) return
         scannedBarcode.value = {
@@ -546,12 +542,13 @@ async function onOpenOrResetBarcode() {
         }
       },
     }
-    if (barcodeReady.value) {
-      await resetBarcodeScan(options)
-    } else {
-      await startBarcodeScan(options)
-    }
-    barcodeReady.value = true
+
+    const started = barcodeReady.value
+      ? await resetBarcodeScan(options)
+      : await startBarcodeScan(options)
+
+    // اسکنر native یک‌باره است؛ پیش‌نمایش زنده لازم نیست.
+    barcodeReady.value = started?.mode === 'stream'
   } catch (error) {
     barcodeReady.value = false
     barcodeError.value = error?.message || 'شروع بارکدخوان ناموفق بود.'

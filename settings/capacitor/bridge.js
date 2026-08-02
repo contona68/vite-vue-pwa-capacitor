@@ -44,8 +44,7 @@ export const viewAppBridge = {
   printMethod: 'print',
 
   /**
-   * بارکدخوان فعلاً از دوربین WebView + BarcodeDetector استفاده می‌کند
-   * (اجازه از openCamera / onPermissionRequest).
+   * بارکدخوان: ViewAppNative.scanBarcode() → { rawValue, format }
    */
-  barcodeNote: 'webview-barcode-detector',
+  barcodeMethod: 'scanBarcode',
 }

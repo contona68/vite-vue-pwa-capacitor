@@ -9,7 +9,7 @@ export const barcodeSettings = {
       height: { ideal: 720 },
     },
   },
-  /** فاصلهٔ بین تلاش‌های تشخیص (ms) */
+  /** فاصلهٔ بین تلاش‌های تشخیص (ms) — فقط مسیر fallback وب‌ویو */
   detectIntervalMs: 250,
   /**
    * فرمت‌های BarcodeDetector (در صورت پشتیبانی مرورگر/WebView)

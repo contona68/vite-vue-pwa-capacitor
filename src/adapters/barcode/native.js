@@ -1,8 +1,8 @@
 /**
- * Barcode — native (ViewApp WebView)
+ * Barcode — native (ViewApp)
  *
- * بدون لایبرری خارجی: getUserMedia + BarcodeDetector API.
- * اجازهٔ دوربین از shell (openCamera / onPermissionRequest) گرفته می‌شود.
+ * بدون لایبرری JS: اسکنر native اندروید (Google Code Scanner).
+ * اگر بریج نباشد، در صورت وجود به BarcodeDetector وب‌ویو برمی‌گردد.
  */
 
 import { viewAppBridge } from '@settings/capacitor/bridge.js'
@@ -23,6 +23,8 @@ let onDetectedCallback = null
 /** @type {string} */
 let lastEmittedValue = ''
 let scanning = false
+/** @type {'native-scanner' | 'stream' | null} */
+let activeMode = null
 
 function getNativeApi() {
   try {
@@ -37,10 +39,15 @@ function hasBarcodeDetector() {
 }
 
 export async function isBarcodeSupported() {
-  return Boolean(navigator?.mediaDevices?.getUserMedia)
+  const api = getNativeApi()
+  if (typeof api?.scanBarcode === 'function') return true
+  return Boolean(navigator?.mediaDevices?.getUserMedia && hasBarcodeDetector())
 }
 
 export function getBarcodeProviderLabel() {
+  const api = getNativeApi()
+  if (typeof api?.scanBarcode === 'function') return 'native-scanner'
+  if (hasBarcodeDetector()) return 'BarcodeDetector'
   return 'native'
 }
 
@@ -66,9 +73,7 @@ function stopTracks() {
 async function ensureDetector() {
   if (detector) return detector
   if (!hasBarcodeDetector()) {
-    throw new Error(
-      'BarcodeDetector در این WebView فعال نیست. WebView یا Google Play Services را به‌روز کنید.',
-    )
+    throw new Error('BarcodeDetector در این WebView فعال نیست.')
   }
 
   try {
@@ -77,16 +82,6 @@ async function ensureDetector() {
     detector = new window.BarcodeDetector()
   }
   return detector
-}
-
-async function warmUpNativeCameraPermission() {
-  const api = getNativeApi()
-  if (typeof api?.openCamera !== 'function') return
-  try {
-    await api.openCamera()
-  } catch (error) {
-    console.warn('[Barcode:native] openCamera permission warm-up failed:', error)
-  }
 }
 
 function grabVideoFrame(video) {
@@ -142,6 +137,21 @@ async function runDetectOnce() {
  */
 export async function startBarcodeScan(options = {}) {
   const { videoElement, onDetected } = options
+  await stopBarcodeScan({ videoElement })
+
+  const api = getNativeApi()
+  if (typeof api?.scanBarcode === 'function') {
+    activeMode = 'native-scanner'
+    const result = await api.scanBarcode()
+    if (result?.rawValue && typeof onDetected === 'function') {
+      onDetected({
+        rawValue: String(result.rawValue),
+        format: String(result.format || 'unknown'),
+      })
+    }
+    return { mode: 'native-scanner' }
+  }
+
   if (!videoElement) {
     throw new Error('عنصر ویدیو برای پیش‌نمایش بارکدخوان لازم است.')
   }
@@ -149,8 +159,6 @@ export async function startBarcodeScan(options = {}) {
     throw new Error('دسترسی به دوربین در این محیط در دسترس نیست.')
   }
 
-  await stopBarcodeScan({ videoElement })
-  await warmUpNativeCameraPermission()
   await ensureDetector()
 
   try {
@@ -166,6 +174,7 @@ export async function startBarcodeScan(options = {}) {
     throw new Error(error?.message || 'باز کردن بارکدخوان ناموفق بود.')
   }
 
+  activeMode = 'stream'
   boundVideo = videoElement
   onDetectedCallback = typeof onDetected === 'function' ? onDetected : null
   lastEmittedValue = ''
@@ -191,15 +200,7 @@ export async function stopBarcodeScan(options = {}) {
   detector = null
   lastEmittedValue = ''
   detectCanvas = null
-
-  const api = getNativeApi()
-  if (typeof api?.closeCamera === 'function') {
-    try {
-      await api.closeCamera()
-    } catch (_) {
-      // ignore
-    }
-  }
+  activeMode = null
 
   stopTracks()
   const videoElement = options.videoElement || boundVideo
