@@ -94,8 +94,9 @@ async function expireTokenForTest() {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.9rem 1.25rem;
-  background: #0f172a;
-  color: #e2e8f0;
+  padding-top: calc(0.9rem + env(safe-area-inset-top, 0px));
+  background: #c2410c;
+  color: #fff7ed;
 }
 
 .nav-start {
@@ -107,7 +108,7 @@ async function expireTokenForTest() {
 
 .brand {
   font-weight: 700;
-  color: #f29220;
+  color: #ffedd5;
   text-decoration: none;
 }
 
@@ -115,9 +116,9 @@ async function expireTokenForTest() {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: #cbd5e1;
+  color: #ffedd5;
   background: none;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(255, 237, 213, 0.45);
   border-radius: 999px;
   padding: 0.25rem 0.7rem;
   font: inherit;
@@ -127,8 +128,8 @@ async function expireTokenForTest() {
 }
 
 .back-btn:hover {
-  color: #f8fafc;
-  border-color: rgba(148, 163, 184, 0.7);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .links {
@@ -140,7 +141,7 @@ async function expireTokenForTest() {
 .links a,
 .logout-btn,
 .test-expire-btn {
-  color: #cbd5e1;
+  color: #ffedd5;
   text-decoration: none;
   font-size: 0.95rem;
   background: none;
@@ -151,20 +152,20 @@ async function expireTokenForTest() {
 }
 
 .links a.router-link-active {
-  color: #f8fafc;
+  color: #fff;
   font-weight: 600;
 }
 
 .logout-btn:hover {
-  color: #f8fafc;
+  color: #fff;
 }
 
 .test-expire-btn {
-  color: #fbbf24;
+  color: #fde68a;
   font-size: 0.82rem;
 }
 
 .test-expire-btn:hover {
-  color: #fde68a;
+  color: #fef3c7;
 }
 </style>

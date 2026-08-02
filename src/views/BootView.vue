@@ -27,7 +27,7 @@ onMounted(async () => {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  background: #0f172a;
+  background: #2b160c;
   color: #94a3b8;
 }
 

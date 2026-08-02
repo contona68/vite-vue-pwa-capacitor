@@ -6,10 +6,10 @@
   --brand-soft-2: rgba(217, 119, 6, 0.18);
   --brand-muted: #ffedd5;
   --brand-deep: #c2410c;
-  --surface: #0f172a;
-  --surface-elevated: rgba(15, 23, 42, 0.72);
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
+  --surface: #2b160c;
+  --surface-elevated: rgba(61, 30, 12, 0.78);
+  --text: #fff7ed;
+  --text-muted: #fdba74;
 
   font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
   line-height: 1.5;

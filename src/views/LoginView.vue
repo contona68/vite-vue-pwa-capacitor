@@ -361,7 +361,7 @@ onUnmounted(() => {
   background:
     radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.22), transparent 50%),
     radial-gradient(ellipse at 80% 90%, rgba(217, 119, 6, 0.18), transparent 45%),
-    #0f172a;
+    #2b160c;
 }
 
 .connection-bar {
@@ -398,7 +398,7 @@ onUnmounted(() => {
   width: min(100%, 420px);
   padding: 1.5rem 1.25rem;
   border-radius: 1.25rem;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(61, 30, 12, 0.78);
   border: 1px solid rgba(148, 163, 184, 0.25);
   backdrop-filter: blur(10px);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
@@ -513,7 +513,7 @@ onUnmounted(() => {
 
 .btn.primary {
   background: linear-gradient(135deg, #f29220, #d97706);
-  color: #0f172a;
+  color: #7c2d12;
 }
 
 .btn:disabled {
@@ -542,7 +542,7 @@ onUnmounted(() => {
   width: min(100%, 360px);
   padding: 1.15rem 1.1rem;
   border-radius: 1rem;
-  background: #0f172a;
+  background: #2b160c;
   border: 1px solid rgba(148, 163, 184, 0.3);
   color: #e2e8f0;
   display: grid;

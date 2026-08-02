@@ -312,14 +312,14 @@ onUnmounted(() => {
   background:
     radial-gradient(ellipse at 20% 10%, rgba(242, 146, 32, 0.22), transparent 50%),
     radial-gradient(ellipse at 80% 90%, rgba(217, 119, 6, 0.18), transparent 45%),
-    #0f172a;
+    #2b160c;
 }
 
 .login-card {
   width: min(100%, 420px);
   padding: 1.5rem 1.25rem;
   border-radius: 1.25rem;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(61, 30, 12, 0.78);
   border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
@@ -393,7 +393,7 @@ onUnmounted(() => {
 
 .btn.primary {
   background: linear-gradient(135deg, #f29220, #d97706);
-  color: #0f172a;
+  color: #7c2d12;
 }
 
 .btn.ghost {

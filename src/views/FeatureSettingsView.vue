@@ -604,7 +604,7 @@ watch(sourceFeatures, () => {
 <style scoped>
 .page {
   min-height: 100dvh;
-  background: #f1f5f9;
+  background: #fff4e8;
 }
 
 .content {
@@ -615,7 +615,7 @@ watch(sourceFeatures, () => {
 
 h1 {
   margin: 0 0 0.55rem;
-  color: #0f172a;
+  color: #7c2d12;
   font-size: 1.2rem;
 }
 
@@ -640,7 +640,7 @@ h1 {
   padding: 0.45rem 0.65rem;
   border-radius: 0.55rem;
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #fed7aa;
 }
 
 .feature-text {
@@ -650,7 +650,7 @@ h1 {
 }
 
 .feature-text strong {
-  color: #0f172a;
+  color: #7c2d12;
   font-size: 0.88rem;
   line-height: 1.25;
 }
@@ -724,7 +724,7 @@ h1 {
 .camera-panel-head h2 {
   margin: 0;
   font-size: 0.95rem;
-  color: #0f172a;
+  color: #7c2d12;
 }
 
 .camera-provider {
@@ -762,7 +762,7 @@ h1 {
   aspect-ratio: 4 / 3;
   border-radius: 0.55rem;
   overflow: hidden;
-  background: #0f172a;
+  background: #2b160c;
 }
 
 .camera-preview {
@@ -770,7 +770,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #0f172a;
+  background: #2b160c;
   opacity: 0;
 }
 
@@ -797,7 +797,7 @@ h1 {
 }
 
 .captured-wrap {
-  background: #f1f5f9;
+  background: #fff4e8;
 }
 
 .barcode-result-wrap {
@@ -814,7 +814,7 @@ h1 {
 }
 
 .barcode-result strong {
-  color: #0f172a;
+  color: #7c2d12;
   font-size: 0.9rem;
   line-height: 1.35;
 }
@@ -853,8 +853,8 @@ h1 {
   gap: 0.35rem;
   padding: 0.65rem 0.75rem;
   border-radius: 0.55rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #fff8f0;
+  border: 1px solid #fed7aa;
 }
 
 .location-row {
@@ -870,7 +870,7 @@ h1 {
 }
 
 .location-row strong {
-  color: #0f172a;
+  color: #7c2d12;
   font-variant-numeric: tabular-nums;
   direction: ltr;
 }
@@ -900,8 +900,8 @@ h1 {
 
 .btn.ghost {
   background: #fff;
-  color: #334155;
-  border: 1px solid #cbd5e1;
+  color: #9a3412;
+  border: 1px solid #fdba74;
 }
 
 .btn:disabled {

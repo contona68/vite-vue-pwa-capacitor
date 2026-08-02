@@ -375,7 +375,7 @@ onUnmounted(() => {
   padding: 1rem 1.15rem;
   border-radius: 1rem;
   background: #ffffff;
-  color: #0f172a;
+  color: #7c2d12;
   border: 1px solid #e2e8f0;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
   pointer-events: auto;
@@ -407,7 +407,7 @@ onUnmounted(() => {
 .text strong {
   display: block;
   margin-bottom: 0.25rem;
-  color: #0f172a;
+  color: #7c2d12;
   font-size: 1.02rem;
 }
 
@@ -495,7 +495,7 @@ onUnmounted(() => {
 }
 
 .btn.ghost {
-  background: #f1f5f9;
+  background: #fff4e8;
   color: #475569;
   border: 1px solid #e2e8f0;
 }
